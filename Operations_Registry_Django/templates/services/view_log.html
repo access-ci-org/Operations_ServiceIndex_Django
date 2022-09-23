@@ -1,0 +1,18 @@
+{% extends "services/base.html" %}
+
+{% block title %}View Log{% endblock %}
+
+{% block content %}
+
+
+<ul>
+    {% for le in log %}
+        {# format: Jul 01, 2014 4:42 p.m. #}
+        <li><b>{{ le.timestamp|date:"M d, Y P" }}</b> {{ le.msg }}</li>
+        {# format: Tue, 1 Jul 2014 16:42:33 -0400 #}
+        {#<li><b>{{ le.timestamp|date:"r" }}</b> {{ le.msg }}</li>#}
+    {% endfor %}
+</ul>
+
+
+{% endblock %}

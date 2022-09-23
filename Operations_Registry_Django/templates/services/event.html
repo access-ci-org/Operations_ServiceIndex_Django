@@ -1,0 +1,98 @@
+{% extends "services/base.html" %}
+
+{% block title %}Event Checklist{% endblock %}
+
+{% block content %}
+
+{% comment %}
+<a class="btn btn-default" href="{% url 'services:add_event' %}" 
+    role="button">Add New Event</a>
+{% endcomment %}
+
+<div class="row">
+    <div class="col-sm-10 col-sm-offset-1">
+        <h2>{{ event.name }}</h2>
+        <div class="well">
+            {{ event.description|linebreaks }}
+        </div>
+    </div>
+</div>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>HOSTNAME</th>
+        <th>IP ADDRESS</th>
+        <th>STATUS LOG</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for host in hosts %}
+        {% if host.hostname %}
+        <tr>
+            <td class="col-sm-2">{{ host.hostname }}</td>
+            <td class="col-sm-2">{{ host.ip }}</td>
+
+            <td class="col-sm-7">
+                {% if host.logs %}
+                    {% for log in host.logs %}
+                        <div class="row">
+                        <div class="col-sm-3">
+                            <p style="text-align:center;">
+                            {% if forloop.last %}
+                            <span class="label label-{{ host.label_type }}">
+                            {% else %}
+                            <span class="label label-default">
+                            {% endif %}
+                            {{ log.status|upper }}</span>
+                            </p>
+                        </div>
+                        <div class="col-sm-9">
+                        {{ log.timestamp|date:"Y/m/d H:i" }} 
+                        <b>{{ log.username }}</b> - {{ log.note }}
+                        </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="row">
+                    <div class="col-sm-3">
+                    <p style="text-align:center;">
+                    <span class="label label-{{ host.label_type }}">
+                        {{ host.status|upper }}</span>
+                    </p>
+                    </div></div>
+                {% endif %}
+                {% comment %}
+                <div class="row">
+                    <div class="col-sm-3 col-sm-offset-{{ host.col }}">
+                    <span class="label label-{{ host.label_type }}">
+                        {{ host.status }}</span>
+                    </div>
+                </div>
+                {% endcomment %}
+            </td>
+            <td class="col-sm-1">
+                <a class="btn btn-xs btn-default" 
+                    href="{% url 'services:update_event' host.hes_id %}" 
+                    role="button">Update</a>
+            </td>
+
+        </tr>
+        {% comment %}
+        {% if host.logs %}
+            <tr><td>
+                <ul>{% for log in host.logs %}
+                    <li>{{ log.timestamp }} {{ log.status }}</li>
+                    {% endfor %}
+                </ul>
+            </td></tr>
+        {% endif %}
+        {% endcomment %}
+
+        {% endif %}
+    {% endfor %}
+    </tbody>
+</table>
+
+
+{% endblock %}

@@ -1,0 +1,8 @@
+AWS Provisioning Options
+
+Lambda - server less functions - can be frontended by API Gateway
+Beanstalk - containers, higher level
+ECS - containers, fine grained
+EC2 - VM based
+
+https://sourcery.ai/blog/python-docker/

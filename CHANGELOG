@@ -1,0 +1,5 @@
+tag-1.0.1 20220923 JP
+  - Improved Docker build and implement https support
+
+tag-1.0.0 20220920 JP
+  - Initial check-in of fully functional application

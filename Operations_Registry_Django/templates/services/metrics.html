@@ -1,0 +1,99 @@
+{% extends "services/base.html" %}
+
+{% block title %}Metrics{% endblock %}
+
+{% block content %}
+
+
+<h1>{{ debug }}</h1>
+<form class="form-horizontal" role="form" 
+    action="{% url 'services:metrics' %}" method="post">
+    {% csrf_token %}
+
+    {% for field in form %}
+        <div class="form-group{% if field.errors %} has-error has-feedback{% endif %}">
+            <label for="{{ field.id_for_label }}" 
+                class="col-sm-2 col-sm-offset-3 control-label">
+                {{ field.label }}:
+            </label>
+            <div class="col-sm-4">
+                {{ field }}
+                {% if field.errors %}
+                <span class="glyphicon glyphicon-remove form-control-feedback">
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+    <div class="row"><div class="col-sm-2 col-sm-offset-5">
+    <input class="btn btn-primary" type="submit" value="Update" />
+    </div></div>
+</form>
+
+<div style="height:30px;"></div>
+
+
+<div class="row">
+    <div class="col-sm-6 col-sm-offset-3">
+        <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">{{ heading }}</h3>
+        </div>
+        <div class="panel-body">
+        <table class="table">
+            <tr>
+                <th>Updates to Services</th>
+                <td style="text-align:right;">{{ updates }}</td>
+            </tr>
+            <tr>
+                <th>New Services Added</th>
+                <td style="text-align:right;">{{ new_services }}</td>
+            </tr>
+            <tr>
+                <th>New Hosts Added</th>
+                <td style="text-align:right;">{{ new_hosts }}</td>
+            </tr>
+            <tr>
+                <th>Services Deprecated</th>
+                <td style="text-align:right;">{{ deprecations }}</td>
+            </tr>
+        </table>
+        </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-6 col-sm-offset-3">
+        <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Current Totals</h3>
+        </div>
+        <div class="panel-body">
+        <table class="table">
+            <tr>
+                <th>Services</th>
+                <td style="text-align:right;">{{ total_services }}</td>
+            </tr>
+            <tr>
+                <th>Hosts</th>
+                <td style="text-align:right;">{{ total_hosts }}</td>
+            </tr>
+        </table>
+        </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- attach datepicker to form fields -->
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#id_start_date").datepicker();
+        $("#id_end_date").datepicker();
+    });
+</script>
+
+{% endblock %}
+

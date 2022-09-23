@@ -1,0 +1,129 @@
+/* tried this to make pisa use landscape for pdfs; didn't work */
+/*
+@page {
+    size: a4 landscape;
+}
+*/
+body {
+   font:normal 12px Verdana, Helvetica;
+}
+input, textarea {
+    font-size:1.2em;
+}
+input.medium {
+    width:300px;
+}
+select.medium {
+    font-size:1.2em;
+    width:140px;
+}
+div.submit {
+    width:100%;
+    text-align:center;
+}
+table {
+    width:100%;
+    border-collapse: collapse;
+}
+td {
+   padding:.25em;
+   /*border:1px solid #ccc;*/
+   /*width:80px;*/
+   /*background-color:green;*/
+}
+
+div.field_row {
+    width:100%;
+    height:50px;
+    /*border:1px solid green;*/
+    position:relative;
+    clear:left;
+    margin-bottom:10px;
+
+}
+div.field {
+    float:left;
+    margin-left:10px;
+}
+div.field span {
+    display:block;
+    width:150px;
+    text-align:right;
+    color:#777;
+    float:left;
+    margin-right:7px;
+    margin-top:5px;
+    /*margin-left:10px;*/
+}
+div.field span.short {
+    width:70px;
+}
+div.field span.error {
+    color: red;
+    font-style:italic;
+    margin-left:150px;
+}
+div.field span.above {
+    float:none;
+    text-align:left;
+}
+fieldset {
+    clear:left;
+}
+div.index_row {
+    width:100%;
+    height:50px;
+    border:1px solid green;
+}
+div.index_cell {
+    border:1px solid blue;
+    float:left;
+}
+div.name {
+    width:15%;
+    text-align:center;
+    font-weight:bold;
+    background-color:#eee;
+}
+div.description {
+    width:40%;
+}
+div.deps {
+    width:40%;
+}
+div.test {
+    height:24px;
+    width:1200px;
+    border:1px solid red;
+}
+table#index {
+    width:1200px;
+    font-size:1em;
+}
+table#index a {
+    font-weight:bold;
+    color:#277cc1;
+    text-decoration:none;
+}
+table#index a:hover {
+    text-decoration:underline;
+}
+table.service {
+    font-size:1em;
+    /*border:1px solid red;*/
+}
+td.short {
+    width:100px;
+    /*background-color:yellow;*/
+}
+td.medium {
+    width:170px;
+    /*background-color:green;*/
+}
+td span {
+    font-weight: bold;
+    color:#ccc;
+}
+td.outlined {
+    border:1px solid #ccc;
+}

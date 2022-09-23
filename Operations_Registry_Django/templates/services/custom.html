@@ -1,0 +1,41 @@
+{% extends "services/bootstrap.html" %}
+{% load get_settings %}
+
+{% block title %}Services Registry{% endblock %}
+
+{% block content %}
+
+<div class="jumbotron">
+    <table style="min-width: 100%"><tr style="vertical-align: top;">
+        <td><a href="https://operations.access-ci.org/" title="Operations Home" rel="home">
+            <img src="/static/services/img/ACCS050322_ACCESS_Brand_Operations-RGB.png" alt="Home"/></a></td>
+        <td style="vertical-align: top;"><h2 style="text-align: left; margin-top: 1px;"><h2>{% settings_value "APP_NAME" %}</h2></td>
+    </tr></table>
+    <ul class="nav nav-pills">
+        <li><a href="{% url 'services:index' %}">Services</a></li>
+        <li class="active"><a href="#">Hosts</a></li>
+        <li><a href="{% url 'services:export' %}">Export...</a></li>
+        <li><a href="{% url 'services:add' %}">Add New Service</a></li>
+        <li><a href="{% url 'services:view_log' %}">View Log</a></li>
+        <li><a href="{% url 'services:clear_and_logout' %}">Log Out</a></li>
+    </ul>
+
+</div>
+
+<table class="table table-striped">
+    <tr>
+        {% for heading in headings %}
+            <th>{{ heading }}</th>
+        {% endfor %}
+    </tr>
+    {% for row in rows %}
+            <tr>
+                {% for field in row %}
+                <td>{{ field }}</td>
+                {% endfor %}
+            </tr>
+    {% endfor %}
+</table>
+
+
+{% endblock %}

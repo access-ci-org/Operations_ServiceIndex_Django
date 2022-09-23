@@ -1,0 +1,38 @@
+{% load get_settings %}
+{% load static %}
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utk-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %}</title>
+
+    <link href="{% static 'services/css/bootstrap.min.css' %}" rel="stylesheet">
+    {#<link href="{% static 'services/css/jquery-ui.css' %}" rel="stylesheet">#}
+    <link href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css" rel="stylesheet">
+</head>
+
+<body>
+<style media="screen" type="text/css"></style>
+    <div class="jumbotron">
+    <table style="min-width: 100%"><tr style="vertical-align: top;">
+        <td><a href="https://operations.access-ci.org/" title="Operations Home" rel="home">
+            <img src="/static/services/img/ACCS050322_ACCESS_Brand_Operations-RGB.png" alt="Home"/></a></td>
+        <td style="vertical-align: top;"><h2>{% settings_value "APP_NAME" %}</h2></td>
+    </tr></table>
+    </div>
+
+    <div class="container" role="main">
+    {% block content %}
+    {% endblock %}
+    </div> <!-- container -->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="{% static 'services/js/bootstrap.min.js' %}"></script>
+    {#<script src="{% static 'services/js/jquery-ui.js' %}"></script>#}
+    <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

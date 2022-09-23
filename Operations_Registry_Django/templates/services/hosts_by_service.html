@@ -1,0 +1,52 @@
+{% extends "services/bootstrap.html" %}
+{% load get_settings %}
+
+{% block title %}Services Registry{% endblock %}
+
+{% block content %}
+
+<div class="jumbotron">
+    <h2>{% settings_value "APP_NAME" %}</h2>
+    <ul class="nav nav-pills">
+        <li><a href="{% url 'services:index' %}">Index</a></li>
+        <li><a href="{% url 'services:export' %}">Export...</a></li>
+        <li><a href="{% url 'services:add' %}">Add New Service</a></li>
+        <li class="active"><a href="#">View Log</a></li>
+        <li><a href="{% url 'services:clear_and_logout' %}">Log Out</a></li>
+    </ul>
+
+</div>
+
+{% comment %}
+<table class="table table-striped">
+    {% for host in hosts %}
+        {#{% if host.host %}#}
+            <tr>
+                <td>{{ host.host }}</td>
+                <td>{{ host.ip }}</td>
+                <td>{{ host.type }}</td>
+                <td>{{ host.service }}</td>
+            </tr>
+        {#{% endif %}#}
+    {% endfor %}
+</table>
+{% endcomment %}
+
+<table class="table table-striped">
+    {% for s in services %}
+        <tr>
+            <td>{{ s.service }}</td>
+            <td>
+                {% for h in s.hosts %}
+                    <div class="row">
+                        <div class="col-sm-2">{{ h.type }}</div>
+                        <div class="col-sm-6">{{ h.host }}</div>
+                        <div class="col-sm-4">{{ h.ip }}</div>
+                    </div>
+                {% endfor %}
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

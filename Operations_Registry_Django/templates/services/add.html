@@ -1,0 +1,197 @@
+{% load static %}
+<html>
+<head>
+    <link type="text/css" rel="stylesheet" href="{% static 'services/style.css' %}" />
+    <link type="text/css" rel="stylesheet" href="{% static 'services/jquery-ui.css' %}" />
+
+    <script src="{% static 'services/js/jquery-1.9.1.js' %}" ></script>
+    <script src= "{% static 'services/js/jquery-ui.js' %}" ></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#id_failover_last_tested").datepicker();
+            $("#id_service_last_verified").datepicker();
+            // $( "[id^='id_host-']" ).each(function(){
+            //    $(this).datepicker();
+            //    });
+        });
+    </script>
+
+</head>
+<body>
+
+{% comment %}
+<p>form errors</p>
+<ul>
+{% for field,errors in form.errors.items %}
+    {% for error in errors %}
+        <li>{{ field }}: {{ error }}</li>
+        {# <li>{{ error }}</li> #}
+    {% endfor %}
+{% endfor %}
+</ul>
+
+<p>Debug: {{ debug }}</p>
+<p>service_id: {{ service_id }}</p>
+{% endcomment %}
+
+<form action="{% url 'services:add' %}" method="post">
+{% csrf_token %}
+
+{# hidden field for service_id; will be 0 if adding new #}
+<input name="service_id" type="hidden" value="{{ service_id }}" />
+
+{% for field in form %}
+<div class="field_row">
+    <div class="field">
+    <span>{{ field.label_tag }}</span>
+    {{ field }}
+    {% if field.errors %}
+    <span class="error">{{ field.errors.0 }}</span>
+    {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+{% comment %}
+<ul>
+{{ form.as_ul }}
+</ul>
+{% endcomment %}
+
+{{ link_formset.management_form }}
+{% for lform in link_formset %}
+<div class="field_row">
+    <div class="field">
+    <span>Link URL:</span>{{ lform.url }}
+    </div>
+</div>
+<div class="field_row">
+    <div class="field">
+    <span>Link Description:</span>{{ lform.description }}
+    </div>
+</div>
+{% endfor %}
+<input style="width:200px;" type="submit" name="add_link" value="Add Additional Link" />
+
+{{ instance_formset.management_form }}
+{% for iform in instance_formset %}
+    {{iform.errors}}
+<fieldset><legend>Instance</legend>
+<div class="field_row">
+    <div class="field">
+    <span>{{ iform.type.label_tag }}</span>
+    {{ iform.type }}
+    </div>
+    <div class="field">
+    <span class="short">{{ iform.availability }}</span>
+    {{ iform.availability }}
+    </div>
+    <div class="field">
+    <span class="short">{{ iform.support.label_tag }}</span>
+    {{ iform.support }}
+    </div>
+</div>
+<div class="field_row">
+    <div class="field">
+        <span>Location:</span>
+    </div>
+    <div class="field">
+        <span class="above">Select from existing:</span>
+        {{ iform.location_choice }}
+    </div>
+    <div class="field">
+        <span class="above">or enter new location:</span>
+        {{ iform.location_site }}
+    </div>
+</div>
+<div class="field_row">
+    <div class="field">
+    <span>{{ iform.hostname.label_tag }}</span>
+    {{ iform.hostname }}
+    </div>
+    <div class="field">
+    <span class="short">{{ iform.ip_address.label_tag }}</span>
+    {{ iform.ip_address }}
+    </div>
+</div>
+<div class="field_row">
+    <div class="field">
+        <span>Sys Admin:</span>
+    </div>
+    <div class="field">
+        <span class="above">Select from existing:</span>
+        {{ iform.sys_admin_choice }}
+    </div>
+    <div class="field">
+        <span class="above">or enter new staff:</span>
+        Name: {{ iform.sys_admin_name }} Email: {{ iform.sys_admin_email }}
+    </div>
+</div>
+<div class="field_row">
+    <div class="field">
+        <span>Primary POC:</span>
+    </div>
+    <div class="field">
+        <span class="above">Select from existing:</span>
+        {{ iform.poc_primary_choice }}
+    </div>
+    <div class="field">
+        <span class="above">or enter new staff:</span>
+        Name: {{ iform.poc_primary_name }} Email: {{ iform.poc_primary_email }}
+    </div>
+</div>
+<div class="field_row">
+    <div class="field">
+        <span>Backup POC:</span>
+    </div>
+    <div class="field">
+        <span class="above">Select from existing:</span>
+        {{ iform.poc_backup_choice }}
+    </div>
+    <div class="field">
+        <span class="above">or enter new staff:</span>
+        Name: {{ iform.poc_backup_name }} Email: {{ iform.poc_backup_email }}
+    </div>
+</div>
+<div class="field_row">
+    <div class="field">
+    <span>{{ iform.note.label_tag }}</span>
+    {{ iform.note }}
+    </div>
+</div>
+
+{% comment %}
+{{ iform.as_ul }}
+{% endcomment %}
+
+</fieldset>
+{% endfor %}
+<input type="submit" name="add_instance" value="Add Additional Instance" />
+
+
+{% comment %}
+<p>----------------------------------------</p>
+<ul>
+{{ link_formset.as_ul }}
+</ul>
+<input type="submit" name="add_link" value="Add Link" />
+
+<p>----------------------------------------</p>
+<ul>
+{{ instance_formset.as_ul }}
+</ul>
+<input type="submit" name="add_instance" value="Add New Instance" />
+{% endcomment %}
+
+<div class="submit">
+    {% if service_id == '0' %}
+    <input type="submit" value="Save New Entry" />
+    {% else %}
+    <input type="submit" value="Save Changes" />
+    {% endif %}
+</div>
+</form>
+
+
+</body>
+</html>

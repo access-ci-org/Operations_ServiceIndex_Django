@@ -1,0 +1,17 @@
+$ psql -p 5434 postgres
+UPDATE pg_database SET datcollate='en_US.UTF-8', datctype='en_US.UTF-8';
+
+CREATE ROLE opsregistry_owner WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION ENCRYPTED PASSWORD ‘...’;
+CREATE DATABASE opsregistry1 WITH OWNER opsregistry_owner encoding "UTF8" LC_COLLATE 'en_US.UTF-8' LC_CTYPE 'en_US.UTF-8';
+
+$ psql -p 5434 opsregistry1
+CREATE ROLE opsreg_django WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION ENCRYPTED PASSWORD ‘...’;
+CREATE SCHEMA opsreg AUTHORIZATION opsreg_django;
+ALTER ROLE opsreg_django SET search_path TO opsreg;
+
+### AWS PRODUCTION
+# AFTER: CREATE ROLE opsregistry_owner ...
+GRANT opsregsitry_owner to opsdba;
+
+# AFTER: CREATE ROLE opsreg_django ...
+GRANT opsreg_django to opsdba;

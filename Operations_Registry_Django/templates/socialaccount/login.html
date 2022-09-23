@@ -1,0 +1,34 @@
+{% extends "services/bootstrap.html" %}
+{% load i18n %}
+{% load account socialaccount %}
+{% load get_settings %}
+
+{% block title %}Operations Registry Login{% endblock %}
+
+{% block content %}
+<h4>ACCESS Operations Infrastructure Services Registry. To request access contact an Operations team lead.</h4>
+<div class="row">
+    <div class="col-sm-6 col-sm-offset-3">
+        <div class="panel panel-info">
+        <div class="panel-heading">
+            <p class="lead">Please login using ACCESS CI credentials</p>
+        </div>
+        <div class="panel-body">
+          <!-- <p>Please login using to ACCESS CI credentials.</p> -->
+          <p style="text-align:center;">
+            <!-- <form class="login" method="POST" action="{% url 'account_login' %}"> -->
+            <form method="POST">
+            {% csrf_token %}
+            {% if redirect_field_value %}
+              <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+            {% endif %}
+            <button class="primaryAction" type="submit">{% trans "Login with ACCESS CI" %}</button>
+            </form>
+         <!-- <a class="btn btn-default socialaccount_provider cilogon" title="ACCESS CI Login"
+            href="/accounts/cilogon/login/?process=login" role="button">ACCESS CI Login</a> -->
+        </p>
+        </div><!-- panel-body -->
+        </div><!-- panel -->
+    </div><!-- col -->
+</div><!-- row -->
+{% endblock %}

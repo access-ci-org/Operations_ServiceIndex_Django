@@ -1,0 +1,30 @@
+version: "3.10"
+   
+services:
+  nginx:
+#   build: ./nginx
+    image: nginx
+    ports:
+      - "8443:8443"
+    volumes:
+      - static_volume:/soft/ops-registry-1.0/www/
+    depends_on:
+      - web
+    restart: "on-failure"
+
+  web:
+#   build: ./web
+    image: opsreg
+#   command: python manage.py runserver 0.0.0.0:8000
+    command: gunicorn --bind :8080 --workers 3 "Operations_Registry_Django.wsgi:application"
+    volumes:
+      - .:/opsreg
+      - static_volume:/soft/ops-registry-1.0/www/
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_CONFIG=/soft/ops-registry-1.0/conf/Operations_Registry_Django.conf
+      - PGHOST=192.168.99.68
+
+volumes:
+    static_volume:
