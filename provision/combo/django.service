@@ -1,0 +1,14 @@
+[Unit]
+Description=Ops Reg Django Web
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=appuser
+WorkingDirectory=/soft/ops-registry-1.0/PROD
+ExecStart=/.venv/bin/python /.venv/bin/gunicorn --bind :8080 --workers 3 Operations_Registry_Django.wsgi:application
+
+[Install]
+WantedBy=multi-user.target

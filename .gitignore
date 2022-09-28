@@ -131,5 +131,5 @@ dmypy.json
 ### MY STUFF ###
 database/dump/
 provision/web/Operations_Registry_Django.conf
-provision/nginx/operations-app.access-ci.org.key
-provision/nginx/operations-app.access-ci.org.pub
+operations-app.access-ci.org.key
+operations-app.access-ci.org.pub

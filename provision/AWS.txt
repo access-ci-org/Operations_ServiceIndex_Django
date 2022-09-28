@@ -6,3 +6,94 @@ ECS - containers, fine grained
 EC2 - VM based
 
 https://sourcery.ai/blog/python-docker/
+
+### Docker ECS
+
+# Create Private ECR
+https://us-east-2.console.aws.amazon.com/ecr/repositories/private/548855480644/access-ops-reg-1?region=us-east-2
+
+
+aws ecr get-login-password --profile default --region us-east-2  | docker login --username AWS --password-stdin 548855480644.dkr.ecr.us-east-2.amazonaws.com
+
+### Elastic Beanstalk
+
+eb init
+✗ cat .elasticbeanstalk/config.yml
+branch-defaults:
+  default:
+    environment: null
+    group_suffix: null
+global:
+  application_name: Operations_Registry_Django
+  branch: null
+  default_ec2_keyname: accessops-aws-root
+  default_platform: Docker running on 64bit Amazon Linux 2
+  default_region: us-east-2
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: null
+  repository: null
+  sc: null
+  workspace_type: Application
+
+
+### Using https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/create-deploy-python-container.html
+
+Created: https://us-east-1.console.aws.amazon.com/iamv2/home?region=us-east-2#/roles/details/AWSServiceRoleForElasticBeanstalk
+
+cd GitHub/Operations_Registry_Django/Operations_Registry_Django
+eb init -p python-3.8 ops-reg-django 
+eb init <setup SSH and select keypair accessops-aws-root>
+eb platform select
+
+# eb create ops-reg-django
+Creating application version archive "app-220925_063309044868".
+Uploading ops-reg-django/app-220925_063309044868.zip to S3. This may take a while.
+Upload Complete.
+Environment details for: ops-reg-django
+  Application name: ops-reg-django
+  Region: us-east-2
+  Deployed Version: app-220925_063309044868
+  Environment ID: e-nikdkpgnet
+  Platform: arn:aws:elasticbeanstalk:us-east-2::platform/Python 3.8 running on 64bit Amazon Linux 2/3.3.17
+  Tier: WebServer-Standard-1.0
+  CNAME: UNKNOWN
+  Updated: 2022-09-25 11:33:12.909000+00:00
+Printing Status:
+2022-09-25 11:33:11    INFO    createEnvironment is starting.
+2022-09-25 11:33:13    INFO    Using elasticbeanstalk-us-east-2-548855480644 as Amazon S3 storage bucket for environment data.
+2022-09-25 11:33:39    INFO    Created security group named: sg-07b3d37a4c663177f
+2022-09-25 11:33:40    INFO    Created load balancer named: awseb-e-n-AWSEBLoa-QH9BJHQZVASS
+2022-09-25 11:33:55    INFO    Created security group named: awseb-e-nikdkpgnet-stack-AWSEBSecurityGroup-EJ17MWGHFYL8
+2022-09-25 11:33:55    INFO    Created Auto Scaling launch configuration named: awseb-e-nikdkpgnet-stack-AWSEBAutoScalingLaunchConfiguration-pfe0CTzBnId1
+2022-09-25 11:34:58    INFO    Created Auto Scaling group named: awseb-e-nikdkpgnet-stack-AWSEBAutoScalingGroup-9AF8SFSBMHKR
+2022-09-25 11:34:58    INFO    Waiting for EC2 instances to launch. This may take a few minutes.
+2022-09-25 11:34:58    INFO    Created Auto Scaling group policy named: arn:aws:autoscaling:us-east-2:548855480644:scalingPolicy:e1f6f01e-b106-4222-b26a-586ee28a6f2b:autoScalingGroupName/awseb-e-nikdkpgnet-stack-AWSEBAutoScalingGroup-9AF8SFSBMHKR:policyName/awseb-e-nikdkpgnet-stack-AWSEBAutoScalingScaleUpPolicy-2GztscgoMA2j
+2022-09-25 11:34:58    INFO    Created Auto Scaling group policy named: arn:aws:autoscaling:us-east-2:548855480644:scalingPolicy:29d5d46b-96e8-4dc2-b279-810a94105e6b:autoScalingGroupName/awseb-e-nikdkpgnet-stack-AWSEBAutoScalingGroup-9AF8SFSBMHKR:policyName/awseb-e-nikdkpgnet-stack-AWSEBAutoScalingScaleDownPolicy-HUiJiV0FV3Y3
+2022-09-25 11:34:58    INFO    Created CloudWatch alarm named: awseb-e-nikdkpgnet-stack-AWSEBCloudwatchAlarmHigh-1DH1TKWPFEDMH
+2022-09-25 11:35:13    INFO    Created CloudWatch alarm named: awseb-e-nikdkpgnet-stack-AWSEBCloudwatchAlarmLow-ODWQO722G52D
+2022-09-25 11:35:17    INFO    Instance deployment successfully generated a 'Procfile'.
+2022-09-25 11:35:19    INFO    Instance deployment completed successfully.
+2022-09-25 11:36:22    INFO    Successfully launched environment: ops-reg-django
+
+
+# eb terminate ops-reg-django
+The environment "ops-reg-django" and all associated instances will be terminated.
+To confirm, type the environment name: ops-reg-django
+2022-09-25 11:53:55    INFO    terminateEnvironment is starting.
+2022-09-25 11:53:55    INFO    Validating environment's EC2 instances have termination protection disabled before performing termination.
+2022-09-25 11:53:56    INFO    Finished validating environment's EC2 instances for termination protection.
+2022-09-25 11:54:13    INFO    Deleted CloudWatch alarm named: awseb-e-nikdkpgnet-stack-AWSEBCloudwatchAlarmLow-ODWQO722G52D 
+2022-09-25 11:54:13    INFO    Deleted CloudWatch alarm named: awseb-e-nikdkpgnet-stack-AWSEBCloudwatchAlarmHigh-1DH1TKWPFEDMH 
+2022-09-25 11:54:13    INFO    Deleted Auto Scaling group policy named: arn:aws:autoscaling:us-east-2:548855480644:scalingPolicy:e1f6f01e-b106-4222-b26a-586ee28a6f2b:autoScalingGroupName/awseb-e-nikdkpgnet-stack-AWSEBAutoScalingGroup-9AF8SFSBMHKR:policyName/awseb-e-nikdkpgnet-stack-AWSEBAutoScalingScaleUpPolicy-2GztscgoMA2j
+2022-09-25 11:54:13    INFO    Deleted Auto Scaling group policy named: arn:aws:autoscaling:us-east-2:548855480644:scalingPolicy:29d5d46b-96e8-4dc2-b279-810a94105e6b:autoScalingGroupName/awseb-e-nikdkpgnet-stack-AWSEBAutoScalingGroup-9AF8SFSBMHKR:policyName/awseb-e-nikdkpgnet-stack-AWSEBAutoScalingScaleDownPolicy-HUiJiV0FV3Y3
+2022-09-25 11:54:13    INFO    Waiting for EC2 instances to terminate. This may take a few minutes.
+2022-09-25 11:56:45    INFO    Deleted Auto Scaling group named: awseb-e-nikdkpgnet-stack-AWSEBAutoScalingGroup-9AF8SFSBMHKR
+2022-09-25 11:56:46    INFO    Deleted load balancer named: awseb-e-n-AWSEBLoa-QH9BJHQZVASS
+2022-09-25 11:56:46    INFO    Deleted Auto Scaling launch configuration named: awseb-e-nikdkpgnet-stack-AWSEBAutoScalingLaunchConfiguration-pfe0CTzBnId1
+2022-09-25 11:56:46    INFO    Deleted security group named: awseb-e-nikdkpgnet-stack-AWSEBSecurityGroup-EJ17MWGHFYL8
+2022-09-25 11:57:16    INFO    Deleted security group named: sg-07b3d37a4c663177f
+2022-09-25 11:57:18    INFO    Deleting SNS topic for environment ops-reg-django.
+2022-09-25 11:57:19    INFO    terminateEnvironment completed successfully.
