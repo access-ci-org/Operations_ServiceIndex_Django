@@ -13,7 +13,10 @@ https://sourcery.ai/blog/python-docker/
 https://us-east-2.console.aws.amazon.com/ecr/repositories/private/548855480644/access-ops-reg-1?region=us-east-2
 
 
-aws ecr get-login-password --profile default --region us-east-2  | docker login --username AWS --password-stdin 548855480644.dkr.ecr.us-east-2.amazonaws.com
+aws ecr get-login-password --profile default --region us-east-2 | docker login --username AWS --password-stdin 548855480644.dkr.ecr.us-east-2.amazonaws.com
+docker tag combo 548855480644.dkr.ecr.us-east-2.amazonaws.com/access-ops-reg-1
+docker push 548855480644.dkr.ecr.us-east-2.amazonaws.com/access-ops-reg-1
+
 
 ### Elastic Beanstalk
 

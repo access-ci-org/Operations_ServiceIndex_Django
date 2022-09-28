@@ -45,7 +45,7 @@ RUN rm /etc/nginx/sites-enabled/default
 COPY provision/combo/nginx.opsreg /etc/nginx/sites-available/nginx.opsreg
 RUN ln -s /etc/nginx/sites-available/nginx.opsreg /etc/nginx/sites-enabled/
 COPY provision/combo/nginx.conf /etc/nginx/conf.d/nginx.conf
-EXPOSE 8443/tcp
+EXPOSE 443/tcp
 
 ENV APP_HOME /soft/ops-registry-1.0
 COPY Operations_Registry_Django/ $APP_HOME/PROD
@@ -69,7 +69,7 @@ COPY provision/combo/django /etc/init.d/django
 COPY provision/combo/django.service /etc/systemd/system/django.service
 RUN /usr/sbin/update-rc.d django defaults
 COPY provision/combo/startup.sh $APP_HOME/sbin/startup.sh
-#CMD ["/bin/bash", "/soft/ops-registry-1.0/sbin/startup.sh"]
 
 # Everything else happens as the runtime user
-USER appuser
+#USER appuser
+CMD ["/bin/bash", "/soft/ops-registry-1.0/sbin/startup.sh"]

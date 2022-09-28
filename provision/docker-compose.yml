@@ -5,7 +5,7 @@ services:
 #   build: ./nginx
     image: nginx
     ports:
-      - "8443:8443"
+      - "443:443"
     volumes:
       - static_volume:/soft/ops-registry-1.0/www/
     depends_on:
