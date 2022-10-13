@@ -77,8 +77,8 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/cilogon/login'
-LOGIN_URL = '/accounts/cilogon/login'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/cilogon/login/'
+LOGIN_URL = '/accounts/cilogon/login/'
 LOGIN_REDIRECT_URL = '/services/'
 #SOCIALACCOUNT_ADAPTER = 'services.views.MySocialAccountAdapter'
 #SOCIALACCOUNT_STORE_TOKENS = True
