@@ -6,6 +6,8 @@ RUN apt-get update -qq
 
 # nginx proxy service
 RUN apt-get install -y nginx
+RUN apt-get install -y openssh-server sudo
+EXPOSE 22/tcp
 
 # SSL configuration
 COPY provision/certs/operations-app.access-ci.org.key /etc/ssl/private/
