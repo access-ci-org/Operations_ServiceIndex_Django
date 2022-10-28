@@ -14,11 +14,11 @@ services:
 
   web:
 #   build: ./web
-    image: opsreg
+    image: serviceindex
 #   command: python manage.py runserver 0.0.0.0:8000
     command: gunicorn --bind :8080 --workers 3 "Operations_ServiceIndex_Django.wsgi:application"
     volumes:
-      - .:/opsreg
+      - .:/serviceindex
       - static_volume:/soft/serviceindex-1.0/www/
     ports:
       - "8080:8080"

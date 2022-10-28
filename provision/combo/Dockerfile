@@ -44,8 +44,8 @@ ENV PATH="/.venv/bin:$PATH"
 
 # Configure NGINX: enabld site, base settings in conf.d/, certs
 RUN rm /etc/nginx/sites-enabled/default
-COPY provision/combo/nginx.opsreg /etc/nginx/sites-available/nginx.opsreg
-RUN ln -s /etc/nginx/sites-available/nginx.opsreg /etc/nginx/sites-enabled/
+COPY provision/combo/nginx.serviceindex /etc/nginx/sites-available/nginx.serviceindex
+RUN ln -s /etc/nginx/sites-available/nginx.serviceindex /etc/nginx/sites-enabled/
 COPY provision/combo/nginx.conf /etc/nginx/conf.d/nginx.conf
 EXPOSE 443/tcp
 

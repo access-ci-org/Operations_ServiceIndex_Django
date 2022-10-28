@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('description', models.CharField(max_length=512)),
             ],
             options={
-                'db_table': '"opsreg"."availability"',
+                'db_table': '"serviceindex"."availability"',
             },
         ),
         migrations.CreateModel(
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                 ('description', models.CharField(max_length=1024)),
             ],
             options={
-                'db_table': '"opsreg"."event"',
+                'db_table': '"serviceindex"."event"',
             },
         ),
         migrations.CreateModel(
@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
                 ('availability', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='services.availability')),
             ],
             options={
-                'db_table': '"opsreg"."host"',
+                'db_table': '"serviceindex"."host"',
             },
         ),
         migrations.CreateModel(
@@ -70,7 +70,7 @@ class Migration(migrations.Migration):
                 ('deprecated', models.BooleanField(default=False)),
             ],
             options={
-                'db_table': '"opsreg"."service"',
+                'db_table': '"serviceindex"."service"',
             },
         ),
         migrations.CreateModel(
@@ -80,7 +80,7 @@ class Migration(migrations.Migration):
                 ('site', models.CharField(max_length=256)),
             ],
             options={
-                'db_table': '"opsreg"."site"',
+                'db_table': '"serviceindex"."site"',
             },
         ),
         migrations.CreateModel(
@@ -94,7 +94,7 @@ class Migration(migrations.Migration):
                 ('deleted', models.BooleanField(default=False)),
             ],
             options={
-                'db_table': '"opsreg"."staff"',
+                'db_table': '"serviceindex"."staff"',
             },
         ),
         migrations.CreateModel(
@@ -104,7 +104,7 @@ class Migration(migrations.Migration):
                 ('hours', models.CharField(max_length=256)),
             ],
             options={
-                'db_table': '"opsreg"."support"',
+                'db_table': '"serviceindex"."support"',
             },
         ),
         migrations.CreateModel(
@@ -117,7 +117,7 @@ class Migration(migrations.Migration):
                 ('service', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='services.service')),
             ],
             options={
-                'db_table': '"opsreg"."logentry"',
+                'db_table': '"serviceindex"."logentry"',
             },
         ),
         migrations.CreateModel(
@@ -129,7 +129,7 @@ class Migration(migrations.Migration):
                 ('service', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='services.service')),
             ],
             options={
-                'db_table': '"opsreg"."link"',
+                'db_table': '"serviceindex"."link"',
             },
         ),
         migrations.CreateModel(
@@ -141,7 +141,7 @@ class Migration(migrations.Migration):
                 ('host', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='services.host')),
             ],
             options={
-                'db_table': '"opsreg"."hosteventstatus"',
+                'db_table': '"serviceindex"."hosteventstatus"',
             },
         ),
         migrations.CreateModel(
@@ -156,7 +156,7 @@ class Migration(migrations.Migration):
                 ('host', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='services.host')),
             ],
             options={
-                'db_table': '"opsreg"."hosteventlog"',
+                'db_table': '"serviceindex"."hosteventlog"',
             },
         ),
         migrations.AddField(
@@ -198,7 +198,7 @@ class Migration(migrations.Migration):
                 ('service', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='services.service')),
             ],
             options={
-                'db_table': '"opsreg"."editlock"',
+                'db_table': '"serviceindex"."editlock"',
             },
         ),
     ]

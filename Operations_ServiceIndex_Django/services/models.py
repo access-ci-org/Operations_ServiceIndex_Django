@@ -17,7 +17,7 @@ class Staff(models.Model):
         return '{}, {} ({})'.format(self.last_name, self.name, self.email)
 
     class Meta:
-        db_table = '"opsreg"."staff"'
+        db_table = '"serviceindex"."staff"'
 
 class Site(models.Model):
     """
@@ -31,7 +31,7 @@ class Site(models.Model):
         return str(self.site)
 
     class Meta:
-        db_table = '"opsreg"."site"'
+        db_table = '"serviceindex"."site"'
 
 class Support(models.Model):
     """
@@ -45,7 +45,7 @@ class Support(models.Model):
         return str(self.hours)
 
     class Meta:
-        db_table = '"opsreg"."support"'
+        db_table = '"serviceindex"."support"'
 
 class Availability(models.Model):
     """
@@ -60,7 +60,7 @@ class Availability(models.Model):
         return '{}/{}'.format(self.tier, self.description)
 
     class Meta:
-        db_table = '"opsreg"."availability"'
+        db_table = '"serviceindex"."availability"'
 
 class Service(models.Model):
     """
@@ -87,7 +87,7 @@ class Service(models.Model):
         return str(self.name)
 
     class Meta:
-        db_table = '"opsreg"."service"'
+        db_table = '"serviceindex"."service"'
 
 class Host(models.Model):
     #TYPE_CHOICES = (
@@ -122,7 +122,7 @@ class Host(models.Model):
         return 'label={}:host={}:service={}:site={}'.format(self.label, self.hostname, self.service, self.location)
 
     class Meta:
-        db_table = '"opsreg"."host"'
+        db_table = '"serviceindex"."host"'
 
 class Link(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE,)
@@ -130,7 +130,7 @@ class Link(models.Model):
     description = models.CharField(max_length=1024)
 
     class Meta:
-        db_table = '"opsreg"."link"'
+        db_table = '"serviceindex"."link"'
 
 class LogEntry(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -139,7 +139,7 @@ class LogEntry(models.Model):
     msg = models.CharField(max_length=1024)
 
     class Meta:
-        db_table = '"opsreg"."logentry"'
+        db_table = '"serviceindex"."logentry"'
 
 class EditLock(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -147,7 +147,7 @@ class EditLock(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE,)
 
     class Meta:
-        db_table = '"opsreg"."editlock"'
+        db_table = '"serviceindex"."editlock"'
     
 
 class Event(models.Model):
@@ -156,7 +156,7 @@ class Event(models.Model):
     description = models.CharField(max_length=1024)
 
     class Meta:
-        db_table = '"opsreg"."event"'
+        db_table = '"serviceindex"."event"'
 
 class HostEventStatus(models.Model):
     UNCHECKED = 'unchecked'
@@ -175,7 +175,7 @@ class HostEventStatus(models.Model):
     #note = models.CharField(max_length=1024, blank=True)
         
     class Meta:
-        db_table = '"opsreg"."hosteventstatus"'
+        db_table = '"serviceindex"."hosteventstatus"'
 
 
 class HostEventLog(models.Model):
@@ -188,7 +188,7 @@ class HostEventLog(models.Model):
     choices=HostEventStatus.STATUS_CHOICES)
    
     class Meta:
-        db_table = '"opsreg"."hosteventlog"'
+        db_table = '"serviceindex"."hosteventlog"'
  
 # FORMS
 
