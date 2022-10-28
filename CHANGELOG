@@ -1,4 +1,7 @@
-tag-1.1.0 20221028 JP
+v1.1.1 20221028 JP
+  - Remove logacy socialauth configuration
+
+v1.1.0 20221028 JP
   - Renamed application from Registry to ServiceIndex
 
 tag-1.0.2 20221013 JP

@@ -64,18 +64,19 @@ INSTALLED_APPS = [
 
 SITE_ID = 1
 
-SOCIALACCOUNT_PROVIDERS = {
-    'cilogon': {
-        # For each OAuth based provider, either add a ``SocialApp``
-        # (``socialaccount`` app) containing the required client
-        # credentials, or list them here:
-        'APP': {
-            'client_id': CONF['SOCIAL_CLIENT_ID'],
-            'secret': CONF['SOCIAL_SECRET'],
-            'key': ''
-        }
-    }
-}
+#SOCIALACCOUNT_PROVIDERS = {
+#    'cilogon': {
+#        # For each OAuth based provider, either add a ``SocialApp``
+#        # (``socialaccount`` app) containing the required client
+#        # credentials, or list them here:
+#        'APP': {
+#            'client_id': CONF['SOCIAL_CLIENT_ID'],
+#            'secret': CONF['SOCIAL_SECRET'],
+#            'key': ''
+#        }
+#    }
+#}
+
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/cilogon/login/'
 LOGIN_URL = '/accounts/cilogon/login/'
@@ -101,7 +102,7 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-CSRF_TRUSTED_ORIGINS = ["https://localhost", "https://localhost:8443"]
+CSRF_TRUSTED_ORIGINS = ["https://localhost", "https://localhost:8443", "https://*.access-ci.org"]
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
