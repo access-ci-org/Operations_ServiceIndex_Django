@@ -1,15 +1,15 @@
 #!/bin/bash
 
 DATE=`date +'%s'`
-FILE=opsreg.dump.${DATE}
+FILE=serviceindex.dump.${DATE}
 echo "pg_dump to: ${FILE}"
 
-pg_dump -a -p 5434 -U opsreg_django \
-    -t opsreg.availability -t opsreg.site -t opsreg.staff -t opsreg.support \
-    -t opsreg.service -t opsreg.host -t opsreg.link -t opsreg.logentry \
-    -t opsreg.event -t opsreg.hosteventlog -t opsreg.hosteventstatus \
-    opsregistry1 >${FILE}
+pg_dump -a -p 5434 -U serviceindex_django \
+    -t serviceindex.availability -t serviceindex.site -t serviceindex.staff -t serviceindex.support \
+    -t serviceindex.service -t serviceindex.host -t serviceindex.link -t serviceindex.logentry \
+    -t serviceindex.event -t serviceindex.hosteventlog -t serviceindex.hosteventstatus \
+    serviceindex1 >${FILE}
 
 echo "Execute:"
-echo "DROP OWNED BY opsreg_django;"
-echo "CREATE SCHEMA opsreg AUTHORIZATION opsreg_django;"
+echo "DROP OWNED BY serviceindex_django;"
+echo "CREATE SCHEMA serviceindex AUTHORIZATION serviceindec_django;"

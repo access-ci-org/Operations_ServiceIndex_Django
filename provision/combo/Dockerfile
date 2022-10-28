@@ -49,11 +49,11 @@ RUN ln -s /etc/nginx/sites-available/nginx.opsreg /etc/nginx/sites-enabled/
 COPY provision/combo/nginx.conf /etc/nginx/conf.d/nginx.conf
 EXPOSE 443/tcp
 
-ENV APP_HOME /soft/ops-registry-1.0
-COPY Operations_Registry_Django/ $APP_HOME/PROD
+ENV APP_HOME /soft/serviceindex-1.0
+COPY Operations_ServiceIndex_Django/ $APP_HOME/PROD
 WORKDIR $APP_HOME/PROD
-ENV APP_CONFIG $APP_HOME/conf/Operations_Registry_Django.conf
-COPY provision/web/Operations_Registry_Django.conf $APP_CONFIG
+ENV APP_CONFIG $APP_HOME/conf/Operations_ServiceIndex_Django.conf
+COPY provision/web/Operations_ServiceIndex_Django.conf $APP_CONFIG
 COPY provision/combo/gunicorn.conf.py $APP_HOME/conf/gunicorn.conf.py
 
 # Runtime logging, also used by collectstatic
@@ -74,4 +74,4 @@ COPY provision/combo/startup.sh $APP_HOME/sbin/startup.sh
 
 # Everything else happens as the runtime user
 #USER appuser
-CMD ["/bin/bash", "/soft/ops-registry-1.0/sbin/startup.sh"]
+CMD ["/bin/bash", "/soft/serviceindex-1.0/sbin/startup.sh"]

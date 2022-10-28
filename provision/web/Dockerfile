@@ -9,11 +9,11 @@ ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONFAULTHANDLER 1
-ENV APP_HOME /soft/ops-registry-1.0
-ENV APP_CONFIG $APP_HOME/conf/Operations_Registry_Django.conf
+ENV APP_HOME /soft/serviceindex-1.0
+ENV APP_CONFIG $APP_HOME/conf/Operations_ServiceIndex_Django.conf
 
-COPY Operations_Registry_Django/ $APP_HOME/PROD
-COPY provision/web/Operations_Registry_Django.conf $APP_CONFIG
+COPY Operations_ServiceIndex_Django/ $APP_HOME/PROD
+COPY provision/web/Operations_ServiceIndex_Django.conf $APP_CONFIG
 
 FROM base AS python-deps
 RUN pip install --upgrade pip

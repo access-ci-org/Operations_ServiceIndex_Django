@@ -1,1 +1,1 @@
-ACCESS Operations (CONECT) Services Registry Django Interface
+ACCESS Operations (CONECT) Service Index Django Interface

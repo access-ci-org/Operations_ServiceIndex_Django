@@ -27,7 +27,7 @@ branch-defaults:
     environment: null
     group_suffix: null
 global:
-  application_name: Operations_Registry_Django
+  application_name: Operations_ServiceIndex_Django
   branch: null
   default_ec2_keyname: accessops-aws-root
   default_platform: Docker running on 64bit Amazon Linux 2
@@ -46,17 +46,17 @@ global:
 
 Created: https://us-east-1.console.aws.amazon.com/iamv2/home?region=us-east-2#/roles/details/AWSServiceRoleForElasticBeanstalk
 
-cd GitHub/Operations_Registry_Django/Operations_Registry_Django
-eb init -p python-3.8 ops-reg-django 
+cd GitHub/Operations_ServiceIndex_Django/Operations_ServiceIndex_Django
+eb init -p python-3.8 serviceindex-django 
 eb init <setup SSH and select keypair accessops-aws-root>
 eb platform select
 
-# eb create ops-reg-django
+# eb create serviceindex-django
 Creating application version archive "app-220925_063309044868".
-Uploading ops-reg-django/app-220925_063309044868.zip to S3. This may take a while.
+Uploading serviceindex-django/app-220925_063309044868.zip to S3. This may take a while.
 Upload Complete.
-Environment details for: ops-reg-django
-  Application name: ops-reg-django
+Environment details for: serviceindex-django
+  Application name: serviceindex-django
   Region: us-east-2
   Deployed Version: app-220925_063309044868
   Environment ID: e-nikdkpgnet

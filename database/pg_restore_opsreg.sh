@@ -8,4 +8,4 @@ if [[ ! -r ${FILE} ]]; then
 fi
 echo "restore dump: ${FILE}"
 
-psql -p 5434 -U opsreg_django opsregistry1 <${FILE}
+psql -p 5434 -U serviceindex_django serviceindex1 <${FILE}

@@ -20,11 +20,11 @@
 
 # Do NOT "set -e"
 
-PROJECT=/soft/ops-registry-1.0/PROD/
-export APP_CONFIG=/soft/ops-registry-1.0/conf/Operations_Registry_Django.conf
+PROJECT=/soft/serviceindex-1.0/PROD/
+export APP_CONFIG=/soft/serviceindex-1.0/conf/Operations_ServiceIndex_Django.conf
 VIRTUALENV=/.venv/
 PORT=8080
-LOGDIR=/soft/ops-registry-1.0/var/
+LOGDIR=/soft/serviceindex-1.0/var/
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/bin:/usr/bin
 USER=appuser
@@ -37,8 +37,8 @@ NAME=`basename $0`
 DESC=$NAME
 LOGFILE="$LOGDIR$NAME.log"
 PIDFILE="$PROJECT$NAME.pid"
-#CMD="$VIRTUALENV/bin/gunicorn --user=$USER --group=$GROUP --daemon --workers=$WORKERS --bind=$IP:$PORT --pid=$PIDFILE --name=$NAME --capture-output --log-file=$LOGFILE --log-level=debug Operations_Registry_Django.wsgi:application"
-CMD="$VIRTUALENV/bin/gunicorn --config=/soft/ops-registry-1.0/conf/gunicorn.conf.py Operations_Registry_Django.wsgi:application"
+#CMD="$VIRTUALENV/bin/gunicorn --user=$USER --group=$GROUP --daemon --workers=$WORKERS --bind=$IP:$PORT --pid=$PIDFILE --name=$NAME --capture-output --log-file=$LOGFILE --log-level=debug Operations_ServiceIndex_Django.wsgi:application"
+CMD="$VIRTUALENV/bin/gunicorn --config=/soft/serviceindex-1.0/conf/gunicorn.conf.py Operations_ServiceIndex_Django.wsgi:application"
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
