@@ -1,3 +1,17 @@
+v1.2.0 20221107 JP
+  - More opsres to serviceindex changes
+  - Convert to use ModelForms
+  - Separate add_service, edit_service, update_service urls and functions
+  - Simplify sys_admin, poc_primary, poc_backup form field processing
+  - Implement url and host delete checkbox
+  - Mark url link open in a new window/tab
+  - Improve url and host add implementation
+  - Switch to standard foreign key selector choice implementation
+  - Switch to conventional "Last, first <e-mail>" staff representation format
+  - Fix two field bugs in the export form
+  - Remove some legacy code
+  - Other minor improvements
+
 v1.1.1 20221028 JP
   - Remove logacy socialauth configuration
 

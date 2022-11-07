@@ -54,7 +54,7 @@
 
 {% for link in s.service.link_set.all %}
 <tr><td class="short"></td><td colspan="6"><span>Link: </span>
-<a href="{{ link.url }}">{{ link.url }}</a> [{{ link.description }}]</td></tr>
+<a href="{{ link.url }}" target="_blank">{{ link.url }}</a> [{{ link.description }}]</td></tr>
 {% endfor %}
 
     {% for i in s.instances %}

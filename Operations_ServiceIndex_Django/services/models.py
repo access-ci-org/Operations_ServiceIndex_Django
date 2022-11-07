@@ -14,7 +14,7 @@ class Staff(models.Model):
     def __unicode__(self):
         return self.name + ' (' + self.email + ')'
     def __str__(self):
-        return '{}, {} ({})'.format(self.last_name, self.name, self.email)
+        return '{}, {} <{}>'.format(self.last_name, self.name, self.email)
 
     class Meta:
         db_table = '"serviceindex"."staff"'
@@ -98,7 +98,6 @@ class Host(models.Model):
     #    ('test', 'test'),
     #    # TODO other choices ??
     #)
-     
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     location = models.ForeignKey(Site, on_delete=models.CASCADE)
     hostname = models.CharField(max_length=256, blank=True) # multiple?
@@ -197,22 +196,16 @@ class ServiceForm(forms.ModelForm):
         model = Service
         fields = ('name', 'description', 'hostname', 'failover_process',
                 'failover_last_tested', 'service_last_verified', 'dependencies', 'lb', 'ha', 'otp','nagios')
-        # this is new in 1.6, overriding labels for modelform
         labels = {'lb': 'Load Balanced', 'ha': 'High Availability',
                 'otp': 'OTP Enabled', 'nagios':  'Service checked by Nagios'}
         widgets = {
             'name': forms.TextInput(attrs={'class':'form-control'}),
-            'description': forms.Textarea(attrs={'class':'form-control',
-                    'rows':'3'}),
+            'description': forms.Textarea(attrs={'class':'form-control', 'rows':'3'}),
             'hostname': forms.TextInput(attrs={'class':'form-control'}),
-            'failover_process': forms.Textarea(attrs={'class':'form-control',
-                    'rows':'3'}),
-            'failover_last_tested': forms.DateInput(format='%m/%d/%Y',
-                    attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}),
-            'service_last_verified': forms.DateInput(format='%m/%d/%Y',
-                    attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}),
-            'dependencies': forms.Textarea(attrs={'class':'form-control',
-                    'rows':'3'}),
+            'failover_process': forms.Textarea(attrs={'class':'form-control', 'rows':'3'}),
+            'failover_last_tested': forms.DateInput(format='%m/%d/%Y', attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}),
+            'service_last_verified': forms.DateInput(format='%m/%d/%Y', attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}),
+            'dependencies': forms.Textarea(attrs={'class':'form-control', 'rows':'3'}),
         }
 
 class MetricsForm(forms.Form):
@@ -224,16 +217,18 @@ class MetricsForm(forms.Form):
             attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}))
     
 class LinkForm(forms.ModelForm):
+# EXCLUDE id and service; service foreign key causes form validation failure
     class Meta:
         model = Link
-        fields = ('url', 'description')
+        fields = '__all__'
+        exclude = ('service',)
         widgets = {
-            'url': forms.TextInput(attrs={'class':'form-control'}),
-            'description': forms.Textarea(attrs={'class':'form-control',
-                    'rows':'2'}),
+            'id': forms.HiddenInput(),
+            'url': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class':'form-control', 'rows':'2'}),
         }
 
-class HostForm(forms.Form):
+class HostForm(forms.ModelForm):
     #TYPE_CHOICES = (
     #    ('primary', 'primary'),
     #    ('secondary', 'secondary'),
@@ -249,36 +244,37 @@ class HostForm(forms.Form):
         """
         cleaned_data = super(HostForm, self).clean()
         # using .get() will not give you a KeyError if key doesn't exist
-        location_choice = cleaned_data.get('location_choice')
-        location_site = cleaned_data.get('location_site')
-        if not location_choice and not location_site:
+        location = cleaned_data.get('location')
+        location_new = cleaned_data.get('location_new')
+        if not location and not location_new:
             msg = u'Please select existing location or enter name of new one.'
-            self._errors['location_choice'] = self.error_class([msg])
-            del cleaned_data['location_choice']
-            del cleaned_data['location_site']
+            self._errors['location'] = self.error_class([msg])
+            del cleaned_data['location']
+            del cleaned_data['location_new']
         # three checks for staff entries
         msg = u'Please select existing staff or enter new name and email.'
         for s in ('sys_admin', 'poc_primary', 'poc_backup'):
-            choice = cleaned_data.get('_'.join([s, 'choice']))
             name = cleaned_data.get('_'.join([s, 'name']))
             email = cleaned_data.get('_'.join([s, 'email']))
-            if not choice:
-                if not name or not email:
-                    self._errors['_'.join([s,'choice'])] = self.error_class(
-                            [msg])
-                    del cleaned_data['_'.join([s,'choice'])]
-                    del cleaned_data['_'.join([s,'name'])]
-                    del cleaned_data['_'.join([s,'email'])]
-                    del cleaned_data['_'.join([s,'phone'])]
+            phone = cleaned_data.get('_'.join([s, 'phone']))
+            if not cleaned_data[s] and (not name or not email):
+                self._errors[s] = self.error_class([msg])
+                del cleaned_data['_'.join([s,'name'])]
+                del cleaned_data['_'.join([s,'email'])]
+                del cleaned_data['_'.join([s,'phone'])]
         return cleaned_data
+
+#    def clean_service(self):    # We set this, so we don't affect changed_data
+#        return self.cleaned_data['service']
         
     #type = forms.ChoiceField(choices=TYPE_CHOICES,
     #        widget=forms.Select(attrs={'class':'form-control'}))
-    location_choice = forms.ModelChoiceField(
+    # REMOVED empty_label=None on 11/5/2022
+    id = forms.HiddenInput()
+    location = forms.ModelChoiceField(required=False, label='Location',
             queryset=Site.objects.all().order_by('site'),
-            required=False, label='Location',
             widget=forms.Select(attrs={'class':'form-control'}))
-    location_site = forms.CharField(required=False, label='Site',
+    location_new = forms.CharField(required=False, label='Site',
             widget=forms.TextInput(attrs={'class':'form-control'}))
     label = forms.CharField(
             widget=forms.TextInput(attrs={'class':'form-control'}))
@@ -286,64 +282,52 @@ class HostForm(forms.Form):
             widget=forms.TextInput(attrs={'class':'form-control'}))
     ip_address = forms.CharField(required=False,
             widget=forms.TextInput(attrs={'class':'form-control'}))
-    qualys = forms.BooleanField(label='Qualys', required=False,
+    qualys = forms.BooleanField(required=False, label='Qualys',
             widget=forms.CheckboxInput(attrs={'class':'first_row'}))
     nagios  = forms.BooleanField(label='Checked by Nagios', required=False,
             widget=forms.CheckboxInput(attrs={'class':'first_row'}))
-    availability = forms.ModelChoiceField(
-            #queryset=Availability.objects.all(), required=False,
-            queryset=Availability.objects.all(), empty_label=None,
+    availability = forms.ModelChoiceField(required=False,
+            queryset=Availability.objects.all(),
             widget=forms.Select(attrs={'class':'form-control'}))
-    support = forms.ModelChoiceField(
-            #queryset=Support.objects.all(), required=False,
-            queryset=Support.objects.all(), empty_label=None,
+    support = forms.ModelChoiceField(required=False,
+            queryset=Support.objects.all(),
             widget=forms.Select(attrs={'class':'form-control'}))
-    sys_admin_choice = forms.ModelChoiceField(
+    sys_admin = forms.ModelChoiceField(required=False, label="Sys Admin",
             queryset=Staff.objects.all().order_by('last_name'),
-            required=False, label="Sys Admin",
             widget=forms.Select(attrs={'class':'form-control'}))
     sys_admin_name = forms.CharField(required=False, label="Name",
-            widget=forms.TextInput(attrs={'class':'form-control',
-            'placeholder':'Name'}))
+            widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Name'}))
     # TODO should this not be EmailField ???
     sys_admin_email = forms.CharField(required=False, label="Email",
-            widget=forms.TextInput(attrs={'class':'form-control',
-            'placeholder':'Email'}))
+            widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Email'}))
     sys_admin_phone = forms.CharField(required=False, label="Phone",
-            widget=forms.TextInput(attrs={'class':'form-control',
-            'placeholder':'Phone'}))
-    poc_primary_choice = forms.ModelChoiceField(
+            widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Phone'}))
+    poc_primary = forms.ModelChoiceField(required=False, label="Primary POC",
             queryset=Staff.objects.all().order_by('last_name'),
-            required=False, label="Primary POC",
             widget=forms.Select(attrs={'class':'form-control'}))
     poc_primary_name = forms.CharField(required=False, label="Name",
-            widget=forms.TextInput(attrs={'class':'form-control',
-            'placeholder':'Name'}))
+            widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Name'}))
     poc_primary_email = forms.CharField(required=False, label="Email",
-            widget=forms.TextInput(attrs={'class':'form-control',
-            'placeholder':'Email'}))
+            widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Email'}))
     poc_primary_phone = forms.CharField(required=False, label="Phone",
-            widget=forms.TextInput(attrs={'class':'form-control',
-            'placeholder':'Phone'}))
-    poc_backup_choice = forms.ModelChoiceField(
+            widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Phone'}))
+    poc_backup = forms.ModelChoiceField(required=False, label="Backup POC",
             queryset=Staff.objects.all().order_by('last_name'),
-            required=False, label="Backup POC",
             widget=forms.Select(attrs={'class':'form-control'}))
     poc_backup_name = forms.CharField(required=False, label="Name",
-            widget=forms.TextInput(attrs={'class':'form-control',
-            'placeholder':'Name'}))
+            widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Name'}))
     poc_backup_email = forms.CharField(required=False, label="Email",
-            widget=forms.TextInput(attrs={'class':'form-control',
-            'placeholder':'Email'}))
+            widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Email'}))
     poc_backup_phone = forms.CharField(required=False, label="Phone",
-            widget=forms.TextInput(attrs={'class':'form-control',
-            'placeholder':'Phone'}))
+            widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Phone'}))
     host_last_verified = forms.DateField(required=False, label = 'Host last verified',
-            widget=forms.DateInput(attrs={'class':'form-control', 
-            'placeholder':'mm/dd/yyyy'}))
+            widget=forms.DateInput(attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}))
     note = forms.CharField(required=False,
-            widget=forms.Textarea(attrs={'class':'form-control',
-                'rows':'3'}))
+            widget=forms.Textarea(attrs={'class':'form-control', 'rows':'3'}))
+    class Meta:
+        model = Host
+        fields = '__all__'
+        exclude = ('service',)
 
 class LoginForm(forms.Form):
     username = forms.CharField()
@@ -397,9 +381,9 @@ class ExportChoicesForm(forms.Form):
     host_last_verified = forms.BooleanField(required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
     nagios = forms.BooleanField(label='Checked by Nagios', required=False,
-        widget=forms.CheckboxInput(attrs={'class':'first_row'}))
+        widget=forms.CheckboxInput(attrs={'class':'second_row'}))
     qualys = forms.BooleanField(label='Scanned by Qualys', required=False,
-        widget=forms.CheckboxInput(attrs={'class':'first_row'}))
+        widget=forms.CheckboxInput(attrs={'class':'second_row'}))
 
 class StaffForm(forms.ModelForm):
     """For editing contact info"""
@@ -433,4 +417,3 @@ class UpdateEventForm(forms.ModelForm):
             'note': forms.Textarea(attrs={'class':'form-control',
                     'rows':'7'}),
         }
-

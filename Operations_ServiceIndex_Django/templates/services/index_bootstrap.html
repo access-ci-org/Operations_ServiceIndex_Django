@@ -4,7 +4,6 @@
 
 {% block content %}
 
-
 {% if expand_all %}
     <a href="{% url 'services:index' %}?expand_all=0"
         class="btn btn-default" role="button"
@@ -89,6 +88,19 @@
                         </div> <!-- row -->
                     </div> <!-- well -->
 
+                    <p>LINKS:</p>
+                    <div class="row">
+                        <div class="col-md-10">
+                            <ul>
+                                {% for link in s.service.link_set.all %}
+                                <li><a href="{{ link.url }}" target="_blank">{{ link.url }}</a>
+                                [{{ link.description }}]</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div> <!-- row -->
+                
+
                     <p>HOSTS:</p>
                     {% for h in s.hosts %}
                         <div class="well well-sm">
@@ -123,17 +135,17 @@
                                 <strong>Sys Admin:</strong>
                                 {{ h.sys_admin.last_name }}, {{ h.sys_admin.name }}
                                 <a href="mailto:{{ h.sys_admin.email }}">
-                                {{ h.sys_admin.email }}</a>
+                                &lt;{{ h.sys_admin.email }}&gt;</a>
                                 {{ h.sys_admin.phone }}<br />
                                 <strong>Primary POC:</strong>
                                 {{ h.poc_primary.last_name }}, {{ h.poc_primary.name }}
                                 <a href="mailto:{{ h.poc_primary.email }}">
-                                {{ h.poc_primary.email }}</a>
+                                &lt;{{ h.poc_primary.email }}&gt;</a>
                                 {{ h.poc_primary.phone }}<br />
                                 <strong>Backup POC:</strong>
                                 {{ h.poc_backup.last_name }}, {{ h.poc_backup.name }}
                                 <a href="mailto:{{ h.poc_backup.email }}">
-                                {{ h.poc_backup.email }}</a>
+                                &lt;{{ h.poc_backup.email }}&gt;</a>
                                 {{ h.poc_backup.phone }}<br/>
                                 <strong>Checked by Nagios:</strong>
                                        {{h.nagios|yesno }}
@@ -150,28 +162,19 @@
                         </div> <!-- well -->
                     {% endfor %} <!-- instances loop -->
 
-
-                <p>LINKS:</p>
+                {% if not s.service.deprecated and editor %}
                 <div class="row">
-                    <div class="col-md-10">
-                        <ul>
-                            {% for link in s.service.link_set.all %}
-                            <li><a href="{{ link.url }}">{{ link.url }}</a>
-                            [{{ link.description }}]</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% if not s.service.deprecated and editor %}
                     <div class="col-md-2">
-                        <a href="{% url 'services:edit' s.service.id %}"
+                        <a href="{% url 'services:edit_service' s.service.id %}"
                             class="btn btn-default"
                             style="color:green;"
                             role="button">
                             <span class="glyphicon glyphicon-pencil"></span>
                             Edit Entry</a>
                     </div>
-                    {% endif %}
                 </div> <!-- row -->
+                {% endif %}
+                
                 <p>LOG:</p>
                 <div class="row">
                     <div class="col-md-10">
@@ -184,11 +187,10 @@
                             {% endfor %}
                         </ul>
                     </div>
-                </div>
-
-                </div> <!-- panel-body -->
-            </div> <!-- panel -->
-        </div> <!-- collapse -->
+                </div> <!-- row -->
+            </div> <!-- panel-body -->
+        </div> <!-- panel -->
+    </div> <!-- collapse -->
     {% endfor %} <!-- services loop -->
 </div> <!-- panel-group -->
 {% endblock %}

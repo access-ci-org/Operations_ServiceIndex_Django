@@ -22,42 +22,41 @@
         <td style="vertical-align: top;"><h2 style="text-align: left; margin-top: 1px;">{{ app_name }}</h2></td>
         </tr></table>
             <ul class="nav nav-pills">
-                {% if page == 'services' %}
-                <li class="active"><a href="#">{% else %}<li><a 
-                    href="{% url 'services:index' %}">{% endif %}Services</a>
-                </li>
-                {% if page == 'hosts' %}
-                <li class="active"><a href="#">{% else %}<li><a 
-                    href="{% url 'services:hosts' 'hostname' %}">{% endif %}Hosts</a>
-                </li>
-                {% if page == 'events' %}
-                <li class="active">{% else %}<li>{% endif %}
-                    <a href="{% url 'services:events' %}">Events</a>
-                </li>
-                {% if page == 'people' %}
-                <li class="active"><a href="#">{% else %}<li><a 
-                    href="{% url 'services:people' %}">{% endif %}People</a>
-                </li>
-                {% if page == 'export' %}
-                <li class="active"><a href="#">{% else %}<li><a 
-                    href="{% url 'services:export' %}">{% endif %}Export...</a>
-                </li>
-                {% if page == 'add' %}
-                <li class="active"><a href="#">{% else %}<li><a 
-                    href="{% url 'services:add' %}">{% endif %}Add New Service</a>
-                </li>
-                {% if page == 'view_log' %}
-                <li class="active"><a href="#">{% else %}<li><a 
-                    href="{% url 'services:view_log' %}">{% endif %}View Log</a>
-                </li>
-                {% if page == 'metrics' %}
-                <li class="active"><a href="#">{% else %}<li><a 
-                    href="{% url 'services:metrics' %}">{% endif %}Metrics</a>
-                </li>
-                {% if page == 'log_out' %}
-                <li class="active"><a href="#">{% else %}<li><a 
-                    href="{% url 'services:clear_and_logout' %}">{% endif %}Log Out</a>
-                </li>
+                {% if page == 'index' %}<li class="active"><a href="#">
+                {% else %}<li><a href="{% url 'services:index' %}">
+                {% endif %}Services</a></li>
+                
+                {% if page == 'hosts' %}<li class="active"><a href="#">
+                {% else %}<li><a href="{% url 'services:hosts' 'hostname' %}">
+                {% endif %}Hosts</a></li>
+                
+                {% if page == 'events' %}<li class="active">
+                {% else %}<li>
+                {% endif %}<a href="{% url 'services:events' %}">Events</a></li>
+                
+                {% if page == 'people' %}<li class="active"><a href="#">
+                {% else %}<li><a href="{% url 'services:people' %}">
+                {% endif %}People</a></li>
+                
+                {% if page == 'export' %}<li class="active"><a href="#">
+                {% else %}<li><a href="{% url 'services:export' %}">
+                {% endif %}Export...</a></li>
+                    
+                {% if page == 'service' %}<li class="active"><a href="#">
+                {% else %}<li><a href="{% url 'services:add_service' %}">
+                {% endif %}Add New Service</a></li>
+                
+                {% if page == 'view_log' %}<li class="active"><a href="#">
+                {% else %}<li><a href="{% url 'services:view_log' %}">
+                {% endif %}View Log</a></li>
+                
+                {% if page == 'metrics' %}<li class="active"><a href="#">
+                {% else %}<li><a href="{% url 'services:metrics' %}">
+                {% endif %}Metrics</a></li>
+                
+                {% if page == 'log_out' %}<li class="active"><a href="#">
+                {% else %}<li><a href="{% url 'services:clear_and_logout' %}">
+                {% endif %}Log Out</a></li>
             </ul>
     </div>
 
@@ -75,4 +74,3 @@
 
 </body>
 </html>
-

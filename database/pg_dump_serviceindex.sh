@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DATE=`date +'%s'`
-FILE=serviceindex.dump.${DATE}
+FILE=dump/serviceindex.dump.${DATE}
 echo "pg_dump to: ${FILE}"
 
 pg_dump -a -p 5434 -U serviceindex_django \
@@ -10,6 +10,6 @@ pg_dump -a -p 5434 -U serviceindex_django \
     -t serviceindex.event -t serviceindex.hosteventlog -t serviceindex.hosteventstatus \
     serviceindex1 >${FILE}
 
-echo "Execute:"
+echo "Manually execute:"
 echo "DROP OWNED BY serviceindex_django;"
 echo "CREATE SCHEMA serviceindex AUTHORIZATION serviceindec_django;"
