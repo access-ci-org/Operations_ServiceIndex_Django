@@ -1,3 +1,10 @@
+v1.2.1 20221111 JP
+  - Fix link form saving bug
+  - Make metrics entry dates Central time aware since log entries do have a UTC timzeone
+  - When log entries are display, make it clear they are in UTC
+  - Display APP_VERSION / GitHub tag in header
+  - Show (username) in logout link
+
 v1.2.0 20221107 JP
   - More opsres to serviceindex changes
   - Convert to use ModelForms

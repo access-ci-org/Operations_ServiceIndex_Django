@@ -6,7 +6,8 @@ from django.urls import reverse, reverse_lazy
 from django.template.loader import get_template
 from django.template import Context
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
+from zoneinfo import ZoneInfo
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf import settings
@@ -186,6 +187,9 @@ def update_service(request):
 #            initial=[{'service': service_id, 'service_id': service_id}])
         for link_form in link_formset:
             link_form.instance.service_id = service_id
+            if link_form.has_changed():
+                if link_form.is_valid():
+                    link_form.save()
 #            if link_form.has_changed():
 ##             and link_form.changed_data != ['service']:
 ##                link_form.service = service
@@ -319,8 +323,8 @@ def export(request):
             # render plain text listing
             response = http.HttpResponse(content_type='text/plain')
             t = get_template('services/export.txt')
-            context = Context({'services':services})
-            response.write(t.render(context))
+            context = {'services':services}
+            response.write(t.render(context, request))
             return response
 
     else:
@@ -529,9 +533,9 @@ def metrics(request):
         form = MetricsForm(request.POST)
         if form.is_valid():
             if form.cleaned_data['start_date']:
-                start = form.cleaned_data['start_date']
+                start = datetime.combine(form.cleaned_data['start_date'], time.min, tzinfo=ZoneInfo("US/Central"))
             if form.cleaned_data['end_date']:
-                end = form.cleaned_data['end_date']
+                end = datetime.combine(form.cleaned_data['end_date'], time.max, tzinfo=ZoneInfo("US/Central"))
     else:
         end = timezone.now()
         week = timedelta(days=7)

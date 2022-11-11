@@ -43,6 +43,7 @@ DEBUG = CONF['DEBUG']
 
 ALLOWED_HOSTS = CONF['ALLOWED_HOSTS']
 
+APP_VERSION = CONF['APP_VERSION']
 
 # Application definition
 

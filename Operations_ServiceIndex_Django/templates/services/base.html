@@ -1,4 +1,5 @@
 {% load static %}
+{% load get_settings %}
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
@@ -20,6 +21,7 @@
         <td><a href="https://operations.access-ci.org/" title="Operations Home" rel="home">
            <img src="/static/services/img/ACCS050322_ACCESS_Brand_Operations-RGB.png" alt="Home"/></a></td>
         <td style="vertical-align: top;"><h2 style="text-align: left; margin-top: 1px;">{{ app_name }}</h2></td>
+        <td>{% settings_value "APP_VERSION" %}</td>
         </tr></table>
             <ul class="nav nav-pills">
                 {% if page == 'index' %}<li class="active"><a href="#">
@@ -56,7 +58,7 @@
                 
                 {% if page == 'log_out' %}<li class="active"><a href="#">
                 {% else %}<li><a href="{% url 'services:clear_and_logout' %}">
-                {% endif %}Log Out</a></li>
+                {% endif %}Log Out ({{ user.username }})</a></li>
             </ul>
     </div>
 
@@ -71,6 +73,5 @@
     <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
     {% block scripts %}
     {% endblock %}
-
 </body>
 </html>
