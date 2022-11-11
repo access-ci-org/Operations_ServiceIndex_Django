@@ -23,10 +23,14 @@ import re
 def editors_check(user):
     return user.groups.filter(name='editors').exists()
 
+def viewers_check(user):
+    return user.groups.filter(name='editors').exists() or user.groups.filter(name='viewers').exists()
+
 def unprivileged(request):
     return render(request, 'services/unprivileged.html')
 
 @login_required
+@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
 def index(request):
     """
     Main index view of list of services; can have one GET parameter specifying
@@ -273,7 +277,7 @@ def update_service(request):
 
 
 @login_required
-@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
 def export(request):
     """
     Shows form for selecting fields; when fields are selected, renders plain
@@ -420,6 +424,7 @@ def custom(request):
     return render(request, 'services/export_choices.html', context)
 
 @login_required
+@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
 def hosts(request, order_field='hostname'):
 #    hosts = {}
     hosts = collections.OrderedDict()
@@ -468,6 +473,7 @@ def hosts(request, order_field='hostname'):
     return render(request, 'services/hosts.html', context)
 
 @login_required
+@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
 def hosts_by_service(request):
     s = ''
     services = []
@@ -485,6 +491,7 @@ def hosts_by_service(request):
     return render(request, 'services/hosts_by_service.html', context)
 
 @login_required
+@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
 def people(request):
     people = []
     # TODO this should not get ones that are deprecated
@@ -504,6 +511,7 @@ def people(request):
     return render(request, 'services/people.html', context)
 
 @login_required
+@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
 def edit_staff(request, staff_id):
     staff = Staff.objects.get(pk=staff_id)
     if request.POST:
@@ -526,6 +534,7 @@ def edit_staff(request, staff_id):
 
 
 @login_required
+@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
 def metrics(request):
     start = None
     end = None
@@ -587,7 +596,7 @@ def metrics(request):
 
 
 @login_required
-@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
 def listing(request):
     """
     This is used for text dump of all services with fields separated by pipes;
@@ -614,7 +623,7 @@ def listing(request):
     return response
 
 @login_required
-@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
 def log_listing(request):
     """
     This is used for text dump of all log entries;
@@ -635,6 +644,7 @@ def make_log_entry(username, service, msg):
     le.save()
 
 @login_required
+@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
 def view_log(request):
     log = LogEntry.objects.all().order_by('-timestamp')
     context = {'page': 'view_log', 'log': log,
@@ -652,9 +662,8 @@ def edit_sorry(request):
     context = {'app_name': settings.APP_NAME}
     return render(request, 'services/edit_sorry.html', context)
 
-# event testing
 @login_required
-@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
 def events(request):
     events = []
     for e in Event.objects.order_by('-created'):
@@ -771,6 +780,7 @@ def do_pdf(template_src, context_dict):
         return http.HttpResponse(result.getvalue(), mimetype='application/pdf')
     return http.HttpResponse('pdf error! %s' % cgi.escape(html))
 
+@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
 def make_pdf(request):
     services = []
     for s in Service.objects.order_by('name'):

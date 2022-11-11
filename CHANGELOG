@@ -1,3 +1,6 @@
+v1.2.2 20221111 JP
+  - New 'viewers' group, update all views to require editor or viewer privs as appropriate
+
 v1.2.1 20221111 JP
   - Fix link form saving bug
   - Make metrics entry dates Central time aware since log entries do have a UTC timzeone
