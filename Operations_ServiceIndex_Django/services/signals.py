@@ -2,19 +2,42 @@
 #import time
 import logging
 from django.contrib.auth.models import User
-from allauth.account.signals import user_logged_in
-from django.db.models.signals import pre_save
 from django.dispatch import receiver, Signal
+from allauth.account.signals import user_logged_in
+from allauth.account.utils import sync_user_email_addresses, setup_user_email
 from allauth.socialaccount.providers.cilogon import provider
 from allauth.socialaccount.providers.oauth2.client import OAuth2Error
+from allauth.socialaccount.signals import pre_social_login
 
-#@receiver(pre_save, sender=User)
 @receiver(user_logged_in)
 def set_username(request, user, **kwargs):
-    subject = user.socialaccount_set.filter(provider='cilogon')[0].extra_data['sub']
+    try:
+        sociallogin = user.socialaccount_set.filter(provider='cilogon')[0]
+    except:
+        raise OAuth2Error('ACCESS CI Identity required but not found')
+        
+    subject = sociallogin.extra_data.get('sub', '')
     username, domain = subject.split('@')[:2]
-    if domain != 'access-ci.org':
-        raise OAuth2Error("ACCESS CI Identity must be used or linked")
-    else:
-        user.username = username
-        user.save()
+    if not username or domain != 'access-ci.org':
+        raise OAuth2Error('ACCESS CI Identity was not used, linked, or was missing a username')
+
+    user.username = username
+    user.save()
+
+@receiver(pre_social_login)
+def connect_existing_user(request, sociallogin, **kwargs):
+    if sociallogin.is_existing:
+        return
+    
+    try:
+        email = sociallogin.email_addresses[0]
+    except:
+        raise OAuth2Error('ACCESS CI Identity required email is missing')
+    
+    try:    # username is unique
+        existing_user = User.objects.get(email=email)
+    except: # Let socialaccount handle creation
+        return
+
+    sociallogin.connect(request, existing_user)
+    setup_user_email(request, existing_user, [])

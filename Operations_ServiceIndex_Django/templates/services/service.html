@@ -1,4 +1,5 @@
-{% extends "services/base.html" %}
+{% extends "services/base_nav_full.html" %}
+
 {% load get_settings %}
 
 {% block title %}Edit Service{% endblock %}
@@ -22,7 +23,7 @@
 <p>service_id: {{ service_id }}</p>
 {% endcomment %}
 
-<form class="form-horizontal" role="form"
+<form role="form"
     action="{% url 'services:update_service' %}" method="post">
     {% csrf_token %}
 
@@ -30,280 +31,299 @@
     <input name="service_id" type="hidden" value="{{ service_id }}" />
 
     {% for field in form %}
-        <div class="form-group{% if field.errors %} has-error has-feedback{% endif %}">
-            <label for="{{ field.id_for_label }}"
-                class="col-sm-2 col-sm-offset-1 control-label">
+    <div class="row mb-2 form-group{% if field.errors %} has-error has-feedback{% endif %}">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ field.id_for_label }}" class="col-form-label">
                 {{ field.label }}:
             </label>
-            <div class="col-sm-6">
-                {{ field }}
-                {% if field.errors %}
-                <span class="glyphicon glyphicon-remove form-control-feedback">
-                </span>
-                {% endif %}
-            </div>
-            {% if field.errors %}
-                <span class="error" style="color:#d9534f;">
-                    {{ field.errors.0 }}</span>
-            {% endif %}
-
         </div>
+        <div class="col-md-6">
+            {{ field }}
+            {% if field.errors %}
+            <span class="glyphicon glyphicon-remove form-control-feedback">
+            </span>
+            {% endif %}
+        </div>
+        {% if field.errors %}
+            <span class="error" style="color:#d9534f;">
+                {{ field.errors.0 }}</span>
+        {% endif %}
+    </div>
     {% endfor %}
 
+
+    </br><p>LINKS:</p>
     {{ link_formset.management_form }}
     {% for lform in link_formset %}
     <!--  hidden fields MUST be included -->
     {{ lform.id }}
-    <div class="panel panel-default">
-    <span class="label label-primary" style="margin-left:10px;">LINK</span>
-    <div class="panel-body">
-        <input name="service" type="hidden" value="{{ service_id }}" />
-        <div class="form-group{% if lform.url.errors %} has-error has-feedback{% endif %}">
-            <label for="{{ lform.url.id_for_label }}"
-                class="col-sm-2 col-sm-offset-1 control-label">
-                URL:
-            </label>
-            <div class="col-sm-6">{{ lform.url }}
+ 
+    <div class="card">
+        <div class="card-body">
+            <input name="service" type="hidden" value="{{ service_id }}" />
+            <span class="badge bg-dark">LINK</span>
+            <div class="row mb-1 form-group{% if lform.url.errors %} has-error has-feedback{% endif %}">
+                <div class="col-md-2" style="text-align:right; vertical-align:middle">
+                    <label for="{{ lform.url.id_for_label }}" class="col-form-label">
+                        URL:
+                    </label>
+                </div>
+                <div class="col-md-6">
+                    {{ lform.url }}
+                    {% if lform.url.errors %}
+                    <span class="glyphicon glyphicon-remove form-control-feedback">
+                    </span>
+                    {% endif %}
+                </div>
                 {% if lform.url.errors %}
-                <span class="glyphicon glyphicon-remove form-control-feedback">
-                </span>
+                    <span class="error" style="color:#d9534f;">
+                        {{ lform.url.errors.0 }}</span>
                 {% endif %}
             </div>
-            {% if lform.url.errors %}
-                <span class="error" style="color:#d9534f;">
-                    {{ lform.url.errors.0 }}</span>
-            {% endif %}
-        </div>
-        <div class="form-group{% if lform.description.errors %} has-error has-feedback{% endif %}">
-            <label for="{{ lform.description.id_for_label }}"
-                class="col-sm-2 col-sm-offset-1 control-label">
-                Description:
-            </label>
-            <div class="col-sm-6">{{ lform.description }}
+            <div class="row mb-1 form-group{% if lform.description.errors %} has-error has-feedback{% endif %}">
+                <div class="col-md-2" style="text-align:right; vertical-align:middle">
+                    <label for="{{ lform.description.id_for_label }}" class="col-form-label">
+                        Description:
+                    </label>
+                </div>
+                <div class="col-md-6">
+                    {{ lform.description }}
+                    {% if lform.description.errors %}
+                    <span class="glyphicon glyphicon-remove form-control-feedback">
+                    </span>
+                    {% endif %}
+                </div>
                 {% if lform.description.errors %}
-                <span class="glyphicon glyphicon-remove form-control-feedback">
-                </span>
+                    <span class="error" style="color:#d9534f;">
+                        {{ lform.description.errors.0 }}</span>
                 {% endif %}
             </div>
-            {% if lform.description.errors %}
-                <span class="error" style="color:#d9534f;">
-                    {{ lform.description.errors.0 }}</span>
+            {% if link_formset.can_delete %}
+            <div class="row mb-1 form-group">
+                <div class="col-md-2" style="text-align:right; vertical-align:middle">
+                    <label class="col-form-label">DELETE?</label>
+                </div>
+                <div class="col-md-6">{{ lform.DELETE }}</div>
+            </div>
             {% endif %}
-        </div>
-<!--        <div class="col-sm-2 col-sm-offset-3">-->
-<!--                <button type="submit" class="btn btn-default btn-sm" style="color:red;"-->
-<!--                    name="remove_link">-->
-<!--                    <span class="glyphicon glyphicon-minus"></span>-->
-<!--                    Remove {{ lform.url.value }}-->
-<!--                </button>-->
-
-<!--        <div id="delete-link-form" class="hidden">-->
-<!--                <div class="col-md-10">-->
-<!--                    <div class="form-group">-->
-<!--                        {{ lform.empty_form.service_id }}-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--                {{ lform.empty_form.DELETE }}-->
-<!--        </div>-->
-        
-<!--        {% if lform.url.value is not empty %}-->
-<!--        <div class="col-sm-offset-3"  style="color:red;">-->
-<!--            <input type="submit" name="remove_link" value="Remove {{ lform.url.value }}" />-->
-<!--        </div>-->
-<!--        {% endif %}-->
-        {% if link_formset.can_delete %}
-        <div class="form-group">
-            <label class="col-sm-2 col-sm-offset-1 control-label">DELETE?</label>
-            <div class="col-sm-6">{{ lform.DELETE }}</div>
-        </div>
-        {% endif %}
-    </div> <!-- panel-body -->
-    </div> <!-- panel -->
+        </div> <!-- card-body -->
+    </div> <!-- card -->
     {% endfor %}
-
-    <div class="row">
-        <div class="col-sm-2 col-sm-offset-3">
-            <button type="submit" class="btn btn-default btn-sm" style="color:green;"
-                name="add_link">
+    
+    <div class="row mt-1">
+        <div class="offset-md-2">
+            <button type="submit" class="btn-sm btn-outline-dark" name="add_link">
                 <span class="glyphicon glyphicon-plus"></span>
-                Add Additional Link
+                Add Another Link
             </button>
         </div>
     </div>
 
+    </br><p>HOSTS:</p>
     {{ host_formset.management_form }}
     {% for hform in host_formset %}
     <!--  hidden fields MUST be included -->
     {{ hform.id }}
+    
+    <div class="card">
+        <div class="card-body">
+            <input name="service" type="hidden" value="{{ service_id }}" />
+            <span class="badge bg-dark">HOST</span>
+            <div class="row mb-1">
+                 <div class="col-md-2" style="text-align:right; vertical-align:middle">
+                    <label for="{{ hform.label.id_for_label }}" class="col-form-label">
+                        Label:
+                        {% if hform.label.errors %}
+                        <span style="color:#d9534f;">(Required)</span>
+                        {% endif %}
+                    </label>
+                </div>
+                <div class="col-md-2">
+                    {{ hform.label }}
+                </div>
 
-    <div class="panel panel-default" style="margin-top:10px;">
-    {% comment %}
-    <div class="panel-heading">
-        <h5 class="panel-heading">Instance</h5>
-    </div>
-    {% endcomment %}
-    <span class="label label-primary" style="margin-left:10px;">HOST</span>
-
-    <div class="panel-body">
-    {# <fieldset><legend>Instance</legend> #}
-    <div class="form-group">
-        <input name="service" type="hidden" value="{{ service_id }}" />
-        <div class="{% if hform.label.errors %}has-error{% endif %}">
-            <label for="{{ hform.label.id_for_label }}"
-                class="col-sm-2 col-sm-offset-1 control-label">
-                Label:
-                {% if hform.label.errors %}
-                <span style="color:#d9534f;">(Required)</span>
-                {% endif %}
+                <div class="col-md-2" style="text-align:right; vertical-align:middle">
+                    <label for="{{ hform.availability.id_for_label }}" class="col-form-label">
+                        Availability:
+                    </label>
+                </div>
+                <div class="col-sm-2">{{ hform.availability }}</div>
+                
+                <div class="col-md-2" style="text-align:right; vertical-align:middle">
+                    <label for="{{ hform.support.id_for_label }}" class="col-form-label">
+                        Support:
+                    </label>
+                </div>
+                <div class="col-md-2">{{ hform.support }}</div>
+            </div>
+                
+        
+    <div class="row mb-2 {% if hform.location.errors %} has-error has-feedback{% endif %}">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label class="col-form-label">
+                Location:
             </label>
-            <div class="col-sm-2">{{ hform.label }}</div>
         </div>
-        <label for="{{ hform.availability.id_for_label }}"
-            class="col-sm-1 control-label">
-            Availability:
-        </label>
-        <div class="col-sm-2">{{ hform.availability }}</div>
-        <label for="{{ hform.support.id_for_label }}"
-            class="col-sm-1 control-label">
-            Support:
-        </label>
-        <div class="col-sm-2">{{ hform.support }}</div>
-    </div>
-    <div class="form-group{% if hform.location.errors %} has-error has-feedback{% endif %}">
-        <label class="col-sm-2 col-sm-offset-1 control-label">
-        Location:
-        </label>
-        <div class="col-sm-4">
+        <div class="col-md-4">
             Select from existing:
             {% if hform.location.errors %}
             <span style="color:#d9534f;">(Required)</span>
             {% endif %}
             {{ hform.location }}
         </div>
-        <div class="col-sm-4">
+        <div class="col-md-4">
             or enter new location:
             {{ hform.location_new }}
         </div>
     </div>
-    <div class="form-group">
-        <label for="{{ hform.hostname.id_for_label }}"
-            class="col-sm-2 col-sm-offset-1 control-label">
-        Hostname:
-        </label>
-        <div class="col-sm-3">
+    <div class="row mb-2">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ hform.hostname.id_for_label }}" class="col-form-label">
+                Hostname:
+            </label>
+        </div>
+        <div class="col-md-3">
             {{ hform.hostname }}
         </div>
-        <label for="{{ ifhrm.ip_address.id_for_label }}"
-            class="col-sm-2 control-label">
-        IP Address:
-        </label>
-        <div class="col-sm-3">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ ifhrm.ip_address.id_for_label }}" class="col-form-label">
+                IP Address:
+            </label>
+        </div>
+        <div class="col-md-3">
             {{ hform.ip_address }}
         </div>
     </div>
-    <div class="form-group">
-        <label for="{{ hform.qualys.id_for_label }}"
-            class="col-sm-2 col-sm-offset-1 control-label">
-        Scanned by Qualys:
-        </label>
-        <div class="col-sm-3">
+    <div class="row mb-2">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ hform.qualys.id_for_label }}" class="col-form-label">
+                Scanned by Qualys:
+            </label>
+        </div>
+        <div class="col-md-3">
             {{ hform.qualys}}
         </div>
-        <label for="{{ hform.nagios.id_for_label }}"
-               class="col-sm-2 control-label">
-            Checked by Nagios:
-         </label>
-         <div class="col-sm-3">
-             {{ hform.nagios }}
-         </div>
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ hform.nagios.id_for_label }}" class="col-form-label">
+                Checked by Nagios:
+            </label>
+        </div>
+        <div class="col-md-3">
+            {{ hform.nagios }}
+        </div>
     </div>
-    <div class="form-group">
-        <label for="{{ hform.host_last_verified.id_for_label }}"
-            class="col-sm-2 col-sm-offset-1 control-label">
-        Host last verified:
-            {% if hform.host_last_verified.errors %}
-            <span style="color:#d9534f;">$$$${{hform.host_last_verified}}$$$</span>
-            {% endif %}
-        </label>
-        <div class="col-sm-3">
+    <div class="row mb-2">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ hform.qualys.id_for_label }}" class="col-form-label">
+                Syslog standard 10514:
+            </label>
+        </div>
+        <div class="col-md-3">
+            {{ hform.syslog_standard_10514}}
+        </div>
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ hform.nagios.id_for_label }}" class="col-form-label">
+                Syslog RELP 10515:
+            </label>
+        </div>
+        <div class="col-md-3">
+            {{ hform.syslog_relp_10515 }}
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ hform.host_last_verified.id_for_label }}" class="col-form-label">
+                Host last verified:
+                {% if hform.host_last_verified.errors %}
+                <span style="color:#d9534f;">$$$${{hform.host_last_verified}}$$$</span>
+                {% endif %}
+            </label>
+        </div>
+        <div class="col-md-3">
             {{ hform.host_last_verified}}
         </div>
     </div>
-    <div class="form-group{% if hform.sys_admin.errors %} has-error has-feedback{% endif %}">
-        <label for="{{ hform.sys_admin.id_for_label }}"
-            class="col-sm-2 col-sm-offset-1 control-label">
-        Sys Admin:
-        </label>
-        <div class="col-sm-4">
+    <div class="row mb-2{% if hform.sys_admin.errors %} has-error has-feedback{% endif %}">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ hform.sys_admin.id_for_label }}" class="col-form-label">
+                Sys Admin:
+            </label>
+        </div>
+        <div class="col-md-4">
             Select from existing:
             {% if hform.sys_admin.errors %}
             <span style="color:#d9534f;">(Required)</span>
             {% endif %}
             {{ hform.sys_admin }}
         </div>
-        <div class="col-sm-4">
+        <div class="col-md-4">
             or enter new "last, first" name:
             {{ hform.sys_admin_name }}
             {{ hform.sys_admin_email }}
             {{ hform.sys_admin_phone }}
         </div>
     </div>
-    <div class="form-group{% if hform.poc_primary.errors %} has-error has-feedback{% endif %}">
-        <label for="{{ hform.poc_primary.id_for_label }}"
-            class="col-sm-2 col-sm-offset-1 control-label">
-        Primary POC:
-        </label>
-        <div class="col-sm-4">
+    <div class="row mb-2{% if hform.poc_primary.errors %} has-error has-feedback{% endif %}">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ hform.poc_primary.id_for_label }}" class="col-form-label">
+                Primary POC:
+            </label>
+        </div>
+        <div class="col-md-4">
             Select from existing:
             {% if hform.poc_primary.errors %}
             <span style="color:#d9534f;">(Required)</span>
             {% endif %}
             {{ hform.poc_primary }}
         </div>
-        <div class="col-sm-4">
+        <div class="col-md-4">
             or enter new "last, first" name:
             {{ hform.poc_primary_name }}
             {{ hform.poc_primary_email }}
             {{ hform.poc_primary_phone }}
         </div>
     </div>
-    <div class="form-group{% if hform.poc_backup.errors %} has-error has-feedback{% endif %}">
-        <label for="{{ hform.poc_backup.id_for_label }}"
-            class="col-sm-2 col-sm-offset-1 control-label">
-        Backup POC:
-        </label>
-        <div class="col-sm-4">
+    <div class="row mb-2{% if hform.poc_backup.errors %} has-error has-feedback{% endif %}">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ hform.poc_backup.id_for_label }}" class="col-form-label">
+                Backup POC:
+            </label>
+        </div>
+        <div class="col-md-4">
             Select from existing:
             {% if hform.poc_backup.errors %}
             <span style="color:#d9534f;">(Required)</span>
             {% endif %}
             {{ hform.poc_backup }}
         </div>
-        <div class="col-sm-4">
+        <div class="col-md-4">
             or enter new "last, first" name:
             {{ hform.poc_backup_name }}
             {{ hform.poc_backup_email }}
             {{ hform.poc_backup_phone }}
         </div>
     </div>
-    <div class="form-group">
-        <label for="{{ hform.note.id_for_label }}"
-            class="col-sm-2 col-sm-offset-1 control-label">
-        Note:
-        </label>
-        <div class="col-sm-6">
+    <div class="row mb-2">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ hform.note.id_for_label }}" class="col-form-label">
+                Note:
+            </label>
+        </div>
+        <div class="col-md-6">
             {{ hform.note }}
         </div>
     </div>
 <!--    {% if hform.label.value is not empty %}-->
-<!--    <div class="col-sm-offset-3"  style="color:red;">-->
+<!--    <div class="col-md-offset-3"  style="color:red;">-->
 <!--        <input type="submit" name="remove_host" value="Remove {{ hform.label.value }}" />-->
 <!--    </div>-->
 <!--    {% endif %}-->
     {% if host_formset.can_delete %}
-    <div class="form-group">
-        <label class="col-sm-2 col-sm-offset-1 control-label">DELETE?</label>
-        <div class="col-sm-6">{{ hform.DELETE }}</div>
+    <div class="row mb-2">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label class="col-form-label">DELETE?</label>
+        </div>
+        <div class="col-md-6">{{ hform.DELETE }}</div>
     </div>
     {% endif %}
     
@@ -322,57 +342,53 @@
         </div>
     </div>
     {% endcomment %}
-    <div class="row">
-        <div class="col-sm-2 col-sm-offset-3">
-            {% comment %}
-            <input class="btn btn-primary" type="submit" name="add_instance"
-                value="Add Additional Instance" />
-            {% endcomment %}
-            <button type="submit" class="btn btn-default btn-sm"
-                style="color:green;" name="add_host">
+    <div class="row mt-1">
+        <div class="offset-md-2">
+            <button type="submit" class="btn-sm btn-outline-dark" name="add_host">
                 <span class="glyphicon glyphicon-plus"></span>
-                Add Additional Host
+                Add Another Host
             </button>
         </div>
     </div>
 
-
-<div class="well well-lg" style="margin-top:10px;">
-<div class="row">
     {% if privileged %}
-    <div class="form-group">
-        <label class="col-sm-3 col-sm-offset-4">
-            <input name="deprecated" type="checkbox" /> Deprecated
-        </label>
+    <div class="row mt-4">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label>
+                <b>Deprecated:</b>
+            </label>
+        </div>
+        <div class="col-md-6">
+            <input name="deprecated" type="checkbox" />
+            &nbsp;(marks service and associated hosts as inactive)
+        </div>
     </div>
     {% endif %}
-    <div class="col-sm-2 col-sm-offset-4">
-    {% if service_id == '0' %}
-        <input class="btn btn-primary" type="submit" value="Save New Entry" />
-    {% else %}
-        <input class="btn btn-primary" type="submit" value="Save Changes" />
-    {% endif %}
-    </div>
-    <div class="col-sm-2">
-        <a class="btn btn-default" href="{% url 'services:index' %}"
-            role="button">Cancel</a>
-    </div>
-</div>
-</div>
-
+    
+    <div class="row mt-4">
+        <div class="col-2">
+        {% if service_id == 0 %}
+            <input class="btn btn-primary" type="submit" value="Add Service" />
+        {% else %}
+            <input class="btn btn-primary" type="submit" value="Save" />
+        {% endif %}
+        </div>
+        <div class="col-2">
+            <a class="btn btn-secondary" href="{% url 'services:index' %}" role="button">Cancel</a>
+        </div>
+    </div> <!-- row -->
+ 
 </form>
 {% endblock %}
 
-{% block scripts %}
-<!-- attach datepicker to failover_last_tested -->
+{% block page_extra_scripts %}
+<!-- attach datepicker to date fields -->
 <script type="text/javascript">
-    $(document).ready(function(){
-        $("#id_failover_last_tested").datepicker();
-        $("#id_service_last_verified").datepicker();
-        // $( "[id^='id_host-']" ).each(function(){
-        //    $(this).datepicker();
-        //    });
-    });
+$(document).ready(function(){
+    $("#id_service-failover_last_tested").datepicker();
+    $("#id_service-service_last_verified").datepicker();
+    $("[id$=last_verified").datepicker();
+});
 </script>
 
 {% endblock %}

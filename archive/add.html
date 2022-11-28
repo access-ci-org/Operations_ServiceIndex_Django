@@ -2,10 +2,10 @@
 <html>
 <head>
     <link type="text/css" rel="stylesheet" href="{% static 'services/style.css' %}" />
-    <link type="text/css" rel="stylesheet" href="{% static 'services/jquery-ui.css' %}" />
+    <link href="//code.jquery.com/ui/1.13.1/themes/smoothness/jquery-ui.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="//code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
 
-    <script src="{% static 'services/js/jquery-1.9.1.js' %}" ></script>
-    <script src= "{% static 'services/js/jquery-ui.js' %}" ></script>
     <script type="text/javascript">
         $(document).ready(function(){
             $("#id_failover_last_tested").datepicker();

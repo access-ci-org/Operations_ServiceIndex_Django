@@ -1,0 +1,200 @@
+{% extends "services/base_nav_full.html" %}
+
+{% load get_settings %}
+
+{% block title %}{% settings_value "APP_NAME" %}{% endblock %}
+
+{% block content %}
+<!--
+<button type="button" class="btn btn-outline-success" role="button"
+    {% if expand_all %}
+    <span class="glyphicon glyphicon-chevron-up"></span>
+    Collapse All
+    {% else %}
+    <span class="glyphicon glyphicon-chevron-down"></span>
+    Expand All
+    {% endif %}
+</button>
+-->
+
+<!-- color:green; -->
+{% if expand_all %}
+<a href="{% url 'services:index' %}?expand_all=0"
+    class="btn btn-outline-success" role="button"
+    style="margin-bottom:15px;">
+    <span class="glyphicon glyphicon-chevron-up"></span>
+    Collapse All</a>
+{% else %}
+<a href="{% url 'services:index' %}?expand_all=1"
+    class="btn btn-outline-success" role="button"
+    style="margin-bottom:15px;">
+    <span class="glyphicon glyphicon-chevron-down"></span>
+    Expand All</a>
+{% endif %}
+
+<div class="accordion text-left" id="services-accordion">
+    {% for s in services %}
+    <div class="card accordion-item">
+        <div class="card-header" style="padding:0px">
+            <h5 class="accordion-header mb-0" id="heading-{{ s.service.name|slugify }}">
+                <button class="accordion-button {% if not expand_all %}collapsed{% endif %} w-100" type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse-{{ s.service.name|slugify }}"
+                    aria-expanded="{% if expand_all %}true{% else %}false{% endif %}"
+                    aria-controls="collapse-{{ s.service.name|slugify }}">
+                    {% if s.service.deprecated %}
+                    <del style="color:#ccc;">&nbsp;{{ s.service.name }}</del>
+                    <small style="color:#d9534f;">DEPRECATED</small>
+                    {% else %}
+                    &nbsp;{{ s.service.name }}
+                    {% endif %}
+                </button>
+            </h5>
+        </div>
+
+        <div id="collapse-{{ s.service.name|slugify }}"
+            class="accordion-collapse collapse {% if expand_all %}show{% endif %}"
+            style="padding-left: .5rem"
+            aria-labelledby="heading-{{ s.service.name|slugify }}">
+<!--        excluding this allows multiple items to be open at once
+            data-bs-parent="#services-accordion">
+-->
+            <div class="card-body">
+                <h4>{{ s.service.description }}</h4>
+                <div class="card card-sm">
+                    <div class="card-body" style="background-color: #f5f5f5">
+                        <strong>Hostname: </strong>{{ s.service.hostname }}<br />
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Load Balanced: </strong>
+                                    {{ s.service.lb|yesno }}<br />
+                                <strong>High Availability: </strong>
+                                    {{ s.service.ha|yesno }}<br />
+                                <strong>OTP Enabled: </strong>
+                                    {{ s.service.otp|yesno }}
+                            </div>
+                            <div class="col-md-5">
+                                <strong>Dependencies: </strong>
+                                    {{ s.service.dependencies }}<br />
+                                <strong>Failover: </strong>
+                                    {{ s.service.failover_process }}<br />
+                                <strong>Failover last tested: </strong>
+                                    {{ s.service.failover_last_tested|date:"m/d/Y" }}
+                            </div>
+                            <div class="col-md-4">
+                                <strong> Service checked by Nagios: </strong>
+                                    {{ s.service.nagios | yesno }}<br />
+                                <strong>Service last verified: </strong>
+                                    {{ s.service.service_last_verified|date:"m/d/Y" }}
+                            </div>
+                        </div> <!-- row -->
+                    </div> <!-- card body -->
+                </div> <!-- card -->
+
+                </br><h6>LINKS:</h6>
+                <div class="row">
+                    <div class="col-md-10">
+                        <ul>
+                            {% for link in s.service.link_set.all %}
+                            <li><a href="{{ link.url }}" target="_blank">{{ link.url }}</a>
+                            [{{ link.description }}]</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div> <!-- row -->
+                
+                </br><h6>HOSTS:</h6>
+                {% for h in s.hosts %}
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <span class="badge bg-dark">
+                                {{ h.label|upper }}
+                                </span>
+                            </div>
+                            <div class="col-md-10">
+                                {#<strong>Hostname:</strong>#}
+                                {{ h.hostname }}
+                            </div>
+                        </div> <!-- row -->
+                    </div> <!-- card-header -->
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>Location: </strong>
+                                    {{ h.location }}<br />
+                                <strong>IP: </strong>
+                                    {{ h.ip_address }}<br />
+                                <strong>Avail:  </strong>
+                                    {{ h.availability }}, {{ h.support }}<br />
+                                <strong>Scanned by Qualys: </strong>
+                                    {{ h.qualys|yesno }}<br />
+                                <strong> Syslog standard: </strong>
+                                    {{h.syslog_standard_10514|yesno}} <br/>
+                                <strong>Host last verified: </strong>
+                                    {{h.host_last_verified}}
+                            </div>
+                            <div class="col-md-8">
+                                <strong>Sys Admin: </strong>
+                                    {{ h.sys_admin.last_name }}, {{ h.sys_admin.name }}
+                                    <a href="mailto:{{ h.sys_admin.email }}">&lt;{{ h.sys_admin.email }}&gt;</a>
+                                    {{ h.sys_admin.phone }}<br />
+                                <strong>Primary POC: </strong>
+                                    {{ h.poc_primary.last_name }}, {{ h.poc_primary.name }}
+                                    <a href="mailto:{{ h.poc_primary.email }}">&lt;{{ h.poc_primary.email }}&gt;</a>
+                                    {{ h.poc_primary.phone }}<br />
+                                <strong>Backup POC: </strong>
+                                    {{ h.poc_backup.last_name }}, {{ h.poc_backup.name }}
+                                    <a href="mailto:{{ h.poc_backup.email }}">&lt;{{ h.poc_backup.email }}&gt;</a>
+                                    {{ h.poc_backup.phone }}<br/>
+                                <strong>Checked by Nagios: </strong>
+                                    {{h.nagios|yesno }} </br>
+                                <strong>Syslog RELP: </strong>
+                                    {{h.syslog_relp_10515|yesno}}
+                            </div>
+                        </div> <!-- row -->
+                    </div> <!-- card-body -->
+                    
+                    {% if h.note %}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <strong>Note: </strong>{{ h.note }}</div>
+                        </div> <!-- row -->
+                    {% endif %}
+
+                </div> <!-- card -->
+                {% endfor %} <!-- hosts loop -->
+
+                {% if not s.service.deprecated and editor %}
+                <div class="row">
+                    <div class="col-md-2">
+                        <a href="{% url 'services:edit_service' s.service.id %}"
+                            class="btn btn-outline-success" role="button"
+                            style="margin-bottom:15px;">
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            Edit Service</a>
+                    </div>
+                </div> <!-- row -->
+                {% endif %}
+                
+                </br><h6>LOG (UTC):</h6>
+                <div class="row">
+                    <div class="col-md-12">
+                        <ul style="font-size-adjust: 0.5">
+                            {% for le in s.log %}
+                                <li>
+                                    <b>{{ le.timestamp|date:"M d, Y P" }}</b>{{ le.msg }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div> <!-- row -->
+                
+            </div> <!-- card body -->
+        </div> <!-- accordion collapse item -->
+    </div> <!-- accordion item -->
+    {% endfor %} <!-- services loop -->
+    
+</div> <!-- accordion -->
+{% endblock %}

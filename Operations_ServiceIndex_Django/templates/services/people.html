@@ -1,43 +1,36 @@
-{% extends "services/base.html" %}
+{% extends "services/base_nav_full.html" %}
 
 {% block title %}People{% endblock %}
 
 {% block content %}
 
-
 <table class="table table-striped">
     <tr>
-        <th>NAME</th><th>CONTACT</th>
-        <th>SYSTEMS</th>
+        <th>Person</th><th>Contact</th><th>Hosts</th>
     </tr>
     {% for p in people %}
             <tr>
-                <td>{{p.last_name}}, {{ p.name }}</td>
+                <td>{{p.last_name}}, {{ p.name }}</br>
+                &nbsp;&nbsp;&nbsp;<a href="{% url 'services:edit_staff' p.id %}"
+                class="btn btn-outline-success" role="button">
+                <span class="glyphicon glyphicon-pencil"></span>
+                Edit</a></td>
                 <td><a href="mailto:{{ p.email }}">{{ p.email }}</a>
-                {% if p.phone %}<br />{{ p.phone }}{% endif %}
-                <br /><a href="{% url 'services:edit_staff' p.id %}"
-                    class="btn btn-xs btn-default" style="color:green;"
-                    role="button">Edit</a>
+                {% if p.phone %}<br />{{ p.phone }}{% endif %}<br />
                 </td>
                 <td>
-                    <ul>
                     {% for h in p.poc_primary_hosts %}
-                        <li>Primary POC, <b>{{ h.service.name }}</b>, {{ h.label }},
-                        {{ h.hostname }}</li>
+                        Primary POC, <b>{{ h.service.name }}</b>, {{ h.label }}, {{ h.hostname }}</br>
                     {% endfor %}
                     {% for h in p.poc_backup_hosts %}
-                        <li>Backup POC, <b>{{ h.service.name }}</b>, {{ h.label }},
-                        {{ h.hostname }}</li>
+                        Backup POC, <b>{{ h.service.name }}</b>, {{ h.label }}, {{ h.hostname }}</br>
                     {% endfor %}
                     {% for h in p.sys_admin_hosts %}
-                        <li>Sys Admin, <b>{{ h.service.name }}</b>, {{ h.label }},
-                        {{ h.hostname }}</li>
+                        Sys Admin, <b>{{ h.service.name }}</b>, {{ h.label }}, {{ h.hostname }}</br>
                     {% endfor %}
-                    </ul>
                 </td>
             </tr>
     {% endfor %}
 </table>
-
 
 {% endblock %}

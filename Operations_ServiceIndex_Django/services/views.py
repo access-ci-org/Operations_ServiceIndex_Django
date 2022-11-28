@@ -58,7 +58,7 @@ def index(request):
             'services': services,
             'expand_all': expand_all, 'editor':editor,
             'app_name': settings.APP_NAME}
-    return render(request, 'services/index_bootstrap.html', context)
+    return render(request, 'services/services_index.html', context)
 
 @login_required
 @user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
@@ -270,7 +270,7 @@ def update_service(request):
             'form': service_form,
             'host_formset': host_formset,
             'link_formset': link_formset,
-            'service_id': str(service_id),
+            'service_id': service_id,
             'debug': debug,
             'app_name': settings.APP_NAME}
     return render(request, 'services/service.html', context)
@@ -289,7 +289,7 @@ def export(request):
             'failover_process', 'failover_last_tested', 'service_last_verified', 'lb', 'ha', 'otp','nagios_service']
     possible_host_fields = ['location', 'hostname', 'ip_address',
             'availability', 'support', 'sys_admin', 'host_last_verified',
-            'poc_primary', 'poc_backup', 'note', 'nagios','qualys']
+            'poc_primary', 'poc_backup', 'note','qualys', 'nagios', 'syslog_standard_10514', 'syslog_relp_10515']
     if request.POST:
         form = ExportChoicesForm(request.POST)
         if form.is_valid():
@@ -445,14 +445,17 @@ def hosts(request, order_field='hostname'):
             else:
                 services = []
                 services.append({'name':h.service.name,'deprecated':h.service.deprecated })
-                hosts[h.hostname] = {'hostname':h.hostname,
-                    'ip':h.ip_address,
+                hosts[h.hostname] = {'hostname': h.hostname,
+                    'ip': h.ip_address,
                     'site': h.location.site,
-                    'label':h.label,
-                    'service':services,
-                    'deprecated':h.service.deprecated,
+                    'label': h.label,
+                    'service': services,
+                    'deprecated': h.service.deprecated,
                     'qualys': h.qualys,
-                    'nagios': h.nagios}
+                    'nagios': h.nagios,
+                    'syslog_standard_10514': h.syslog_standard_10514,
+                    'syslog_relp_10515': h.syslog_relp_10515
+                    }
                 hostnames.append(h.hostname)    
     else:
         for h in hosts_list:
@@ -463,10 +466,11 @@ def hosts(request, order_field='hostname'):
                 services = []
                 hostlabel = h.label
             services.append({'name':h.service.name,'deprecated':h.service.deprecated})
-            hosts[h.hostname] = {'hostname':h.hostname, 'ip':h.ip_address,
+            hosts[h.hostname] = {'hostname': h.hostname, 'ip': h.ip_address,
                 'site': h.location.site,
-                'label':hostlabel, 'service':services,
-                'deprecated':h.service.deprecated, 'qualys':h.qualys, 'nagios': h.nagios}
+                'label': hostlabel, 'service': services,
+                'deprecated': h.service.deprecated, 'qualys': h.qualys, 'nagios': h.nagios,
+                'syslog_standard_10514': h.syslog_standard_10514, 'syslog_relp_10515': h.syslog_relp_10515}
     context = {'page': 'hosts', 'hosts': hosts,
             'order_field': order_field,
             'app_name': settings.APP_NAME}
@@ -787,4 +791,4 @@ def make_pdf(request):
         services.append({'service': s, 'instances': s.instance_set.all()})
     
     context = {'services':services}
-    return do_pdf('services/index.html', context)
+    return do_pdf('services/services_for_pdf.html', context)

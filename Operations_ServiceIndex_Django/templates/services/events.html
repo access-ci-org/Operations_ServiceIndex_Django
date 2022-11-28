@@ -1,9 +1,8 @@
-{% extends "services/base.html" %}
+{% extends "services/base_nav_full.html" %}
 
 {% block title %}Events{% endblock %}
 
 {% block content %}
-
 
 <table class="table table-striped">
     <thead>
@@ -17,7 +16,7 @@
         <td><span class="label label-primary">N/A</span></td>
     </tr>
     </thead>
-    <tbody>
+    <tbody style="font-size-adjust:0.5">
     {% for event in events %}
         <tr>
             <td class="col-sm-2"><a href="{% url 'services:event' event.id %}">{{ event.name }}</a></td>
@@ -33,12 +32,12 @@
     </tbody>
 </table>
 
-<p style="text-align:center;">
-<a class="btn btn-default" style="color:green;" 
-    href="{% url 'services:add_event' %}" 
-    role="button"><span class="glyphicon glyphicon-plus"></span>
-    Add New Event</a>
-</p>
-
+<div class="row">
+    <div class="col-md-3">
+        <a href="{% url 'services:add_event' %}" class="btn btn-outline-success" role="button" style="margin-bottom:15px;">
+        <span class="glyphicon glyphicon-plus"></span>
+        Add New Event</a>
+    </div>
+</div>
 
 {% endblock %}

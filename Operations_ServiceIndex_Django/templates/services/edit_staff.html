@@ -1,9 +1,8 @@
-{% extends "services/base.html" %}
+{% extends "services/base_nav_full.html" %}
 
 {% block title %}Edit Staff{% endblock %}
 
 {% block content %}
-
 
 {% comment %}
 <p>form errors</p>
@@ -22,49 +21,39 @@
 <p>service_id: {{ service_id }}</p>
 {% endcomment %}
 
-
-<form class="form-horizontal" role="form"
+<form role="form"
     action="{% url 'services:edit_staff' staff_id %}" method="post">
     {% csrf_token %}
 
-    <!-- <div class="form-group">
-        <label class="col-sm-2 col-sm-offset-1 control-label">Name: </label>
-        <div class="col-sm-6">
-            <p class="form-control-static">{{ staff_name }}</p>
-        </div>
-    </div> -->
-
     {% for field in form %}
-        <div class="form-group{% if field.errors %} has-error has-feedback{% endif %}">
-            <label for="{{ field.id_for_label }}"
-                class="col-sm-2 col-sm-offset-1 control-label">
+    <div class="row mb-2 form-group{% if field.errors %} has-error has-feedback{% endif %}">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ field.id_for_label }}" class="col-form-label">
                 {{ field.label }}:
             </label>
-            <div class="col-sm-6">
-                {{ field }}
-                {% if field.errors %}
-                <span class="glyphicon glyphicon-remove form-control-feedback">
-                </span>
-                {% endif %}
-            </div>
-            {% if field.errors %}
-                <span class="error" style="color:#d9534f;">
-                    {{ field.errors.0 }}</span>
-            {% endif %}
-
         </div>
+        <div class="col-sm-6">
+            {{ field }}
+            {% if field.errors %}
+            <span class="glyphicon glyphicon-remove form-control-feedback">
+            </span>
+            {% endif %}
+        </div>
+        {% if field.errors %}
+            <span class="error" style="color:#d9534f;">
+                {{ field.errors.0 }}</span>
+        {% endif %}
+
+    </div>
     {% endfor %}
 
-    <div class="well well-lg" style="margin-top:10px;">
-    <div class="row">
-        <div class="col-sm-2 col-sm-offset-4">
-        <input class="btn btn-primary" type="submit" value="Update Staff" />
+    <div class="row mt-4">
+        <div class="col-sm-2">
+            <input class="btn btn-primary" type="submit" value="Save" />
         </div>
         <div class="col-sm-2">
-            <a class="btn btn-default" href="{% url 'services:people' %}"
-                    role="button">Cancel</a>
+            <a class="btn btn-secondary" href="{% url 'services:people' %}" role="button">Cancel</a>
         </div>
-    </div>
     </div>
 
 </form>

@@ -15,13 +15,16 @@ Including another URLconf
 """
 from django.conf import settings as django_settings
 from django.contrib import admin
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.urls import include, path
 from django.views.generic import RedirectView
 from allauth.socialaccount.providers.oauth2.views import OAuth2LoginView
+from . import views
 
 urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('admin/', admin.site.urls),
     path('services/', include('services.urls', namespace="services")),
+    path('favicon.ico', views.favicon),
     path('', RedirectView.as_view(url=django_settings.LOGIN_URL) )
 ]

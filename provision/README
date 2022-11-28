@@ -1,0 +1,4 @@
+ACCESS production provisioning using Terraform and Ansible is now at:
+  https://github.com/access-ci-org/Operations_ServiceIndex_Infrastructure
+
+TODO: Cleanup provisioning in this repo to generate containers and be compatible with above Terraform and Ansible code

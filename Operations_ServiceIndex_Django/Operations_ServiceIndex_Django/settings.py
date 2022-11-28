@@ -43,8 +43,6 @@ DEBUG = CONF['DEBUG']
 
 ALLOWED_HOSTS = CONF['ALLOWED_HOSTS']
 
-APP_VERSION = CONF['APP_VERSION']
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -61,6 +59,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.cilogon',
+    'bootstrap5',
 ]
 
 SITE_ID = 1
@@ -249,3 +248,4 @@ LOGGING = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 APP_NAME = 'Service Index'
+APP_VERSION = CONF['APP_VERSION']

@@ -1,14 +1,15 @@
-{% extends "services/bootstrap.html" %}
+{% extends "services/base_nav_none.html" %}
+
 {% load get_settings %}
 
-{% block title %}Service Index{% endblock %}
+{% block title %}{% settings_value "APP_NAME" %}{% endblock %}
 
 {% block content %}
 
 <div class="jumbotron">
     <h2>{% settings_value "APP_NAME" %}</h2>
     <ul class="nav nav-pills">
-        <li><a href="{% url 'services:index' %}">Index</a></li>
+        <li><a href="{% url 'services:index' %}">Services</a></li>
         <li><a href="{% url 'services:export' %}">Export...</a></li>
         <li><a href="{% url 'services:add' %}">Add New Service</a></li>
         <li class="active"><a href="#">View Log</a></li>

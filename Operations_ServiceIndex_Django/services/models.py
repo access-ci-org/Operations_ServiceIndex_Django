@@ -102,8 +102,10 @@ class Host(models.Model):
     location = models.ForeignKey(Site, on_delete=models.CASCADE)
     hostname = models.CharField(max_length=256, blank=True) # multiple?
     ip_address = models.CharField(max_length=128, blank=True)
-    qualys  = models.BooleanField()
-    nagios  = models.BooleanField()
+    qualys = models.BooleanField(blank=False)
+    nagios = models.BooleanField(blank=False)
+    syslog_standard_10514 = models.BooleanField(blank=False)
+    syslog_relp_10515 = models.BooleanField(blank=False)
     #type = models.CharField(max_length=32, choices=TYPE_CHOICES)
     label = models.CharField(max_length=128)  # 'primary', 'test', etc.
     availability = models.ForeignKey(Availability, on_delete=models.CASCADE)
@@ -273,7 +275,7 @@ class HostForm(forms.ModelForm):
     id = forms.HiddenInput()
     location = forms.ModelChoiceField(required=False, label='Location',
             queryset=Site.objects.all().order_by('site'),
-            widget=forms.Select(attrs={'class':'form-control'}))
+            widget=forms.Select(attrs={'class':'form-select'}))
     location_new = forms.CharField(required=False, label='Site',
             widget=forms.TextInput(attrs={'class':'form-control'}))
     label = forms.CharField(
@@ -286,15 +288,19 @@ class HostForm(forms.ModelForm):
             widget=forms.CheckboxInput(attrs={'class':'first_row'}))
     nagios  = forms.BooleanField(label='Checked by Nagios', required=False,
             widget=forms.CheckboxInput(attrs={'class':'first_row'}))
+    syslog_standard_10514 = forms.BooleanField(label='Syslog default to 10514', required=False,
+            widget=forms.CheckboxInput(attrs={'class':'first_row'}))
+    syslog_relp_10515 = forms.BooleanField(label='Syslog RELP to 10515', required=False,
+            widget=forms.CheckboxInput(attrs={'class':'first_row'}))
     availability = forms.ModelChoiceField(required=False,
             queryset=Availability.objects.all(),
-            widget=forms.Select(attrs={'class':'form-control'}))
+            widget=forms.Select(attrs={'class':'form-select'}))
     support = forms.ModelChoiceField(required=False,
             queryset=Support.objects.all(),
-            widget=forms.Select(attrs={'class':'form-control'}))
+            widget=forms.Select(attrs={'class':'form-select'}))
     sys_admin = forms.ModelChoiceField(required=False, label="Sys Admin",
             queryset=Staff.objects.all().order_by('last_name'),
-            widget=forms.Select(attrs={'class':'form-control'}))
+            widget=forms.Select(attrs={'class':'form-select'}))
     sys_admin_name = forms.CharField(required=False, label="Name",
             widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Name'}))
     # TODO should this not be EmailField ???
@@ -304,7 +310,7 @@ class HostForm(forms.ModelForm):
             widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Phone'}))
     poc_primary = forms.ModelChoiceField(required=False, label="Primary POC",
             queryset=Staff.objects.all().order_by('last_name'),
-            widget=forms.Select(attrs={'class':'form-control'}))
+            widget=forms.Select(attrs={'class':'form-select'}))
     poc_primary_name = forms.CharField(required=False, label="Name",
             widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Name'}))
     poc_primary_email = forms.CharField(required=False, label="Email",
@@ -313,7 +319,7 @@ class HostForm(forms.ModelForm):
             widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Phone'}))
     poc_backup = forms.ModelChoiceField(required=False, label="Backup POC",
             queryset=Staff.objects.all().order_by('last_name'),
-            widget=forms.Select(attrs={'class':'form-control'}))
+            widget=forms.Select(attrs={'class':'form-select'}))
     poc_backup_name = forms.CharField(required=False, label="Name",
             widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Name'}))
     poc_backup_email = forms.CharField(required=False, label="Email",
@@ -380,9 +386,13 @@ class ExportChoicesForm(forms.Form):
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
     host_last_verified = forms.BooleanField(required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
+    qualys = forms.BooleanField(label='Scanned by Qualys', required=False,
+        widget=forms.CheckboxInput(attrs={'class':'second_row'}))
     nagios = forms.BooleanField(label='Checked by Nagios', required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
-    qualys = forms.BooleanField(label='Scanned by Qualys', required=False,
+    syslog_standard_10514 = forms.BooleanField(label='Default Syslog to 10514', required=False,
+        widget=forms.CheckboxInput(attrs={'class':'second_row'}))
+    syslog_relp_10515 = forms.BooleanField(label='RELP Syslog to 10515', required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
 
 class StaffForm(forms.ModelForm):

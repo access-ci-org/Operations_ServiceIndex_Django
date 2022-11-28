@@ -1,39 +1,33 @@
-{% extends "services/base.html" %}
+{% extends "services/base_nav_full.html" %}
 
 {% block title %}Event Checklist{% endblock %}
 
 {% block content %}
 
-{% comment %}
-<a class="btn btn-default" href="{% url 'services:add_event' %}" 
-    role="button">Add New Event</a>
-{% endcomment %}
-
-<div class="row">
-    <div class="col-sm-10 col-sm-offset-1">
-        <h2>{{ event.name }}</h2>
-        <div class="well">
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Event Name: {{ event.name }}</h2>
+        <p class="card-text">
             {{ event.description|linebreaks }}
-        </div>
+        </p>
     </div>
-</div>
+    <div class="card-body">
+                 
 <table class="table table-striped">
-    <thead>
-    <tr>
+    <thead><tr>
         <th>HOSTNAME</th>
         <th>IP ADDRESS</th>
         <th>STATUS LOG</th>
         <th></th>
-    </tr>
-    </thead>
-    <tbody>
+    </tr></thead>
+    <tbody style="font-size-adjust:0.5">
     {% for host in hosts %}
         {% if host.hostname %}
         <tr>
             <td class="col-sm-2">{{ host.hostname }}</td>
-            <td class="col-sm-2">{{ host.ip }}</td>
+            <td class="col-sm-1">{{ host.ip }}</td>
 
-            <td class="col-sm-7">
+            <td class="col-sm-6">
                 {% if host.logs %}
                     {% for log in host.logs %}
                         <div class="row">
@@ -47,7 +41,7 @@
                             {{ log.status|upper }}</span>
                             </p>
                         </div>
-                        <div class="col-sm-9">
+                        <div class="col-sm-7">
                         {{ log.timestamp|date:"Y/m/d H:i" }} 
                         <b>{{ log.username }}</b> - {{ log.note }}
                         </div>
@@ -71,10 +65,11 @@
                 </div>
                 {% endcomment %}
             </td>
-            <td class="col-sm-1">
-                <a class="btn btn-xs btn-default" 
-                    href="{% url 'services:update_event' host.hes_id %}" 
-                    role="button">Update</a>
+            <td class="col-sm-2">
+                <a href="{% url 'services:update_event' host.hes_id %}"
+                class="btn btn-outline-success" role="button">
+                <span class="glyphicon glyphicon-pencil"></span>
+                Update</a>
             </td>
 
         </tr>
@@ -93,6 +88,9 @@
     {% endfor %}
     </tbody>
 </table>
+
+</div> <!-- card body -->
+</div> <!-- card -->
 
 
 {% endblock %}

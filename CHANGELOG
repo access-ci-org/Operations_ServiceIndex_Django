@@ -1,3 +1,18 @@
+v2.0.0 20221128 JP
+  - Upgrade and convert to django-bootstrap-v5 installed in pipenv, remove old local version
+  - Upgrade and convert to JQuery Core 3.6.1 and JQuery UI 1.13.1 loaded from code.jquery.com cdn, remove old local version
+  - Support connecting sociallogin to existing Drupal user
+  - Apply ACCESS web styling, including fonts, buttons, login/logout button style
+  - Add favicon.ico with url path handler
+  - Fix service date fields to use JS datepicker
+  - Implement a standard logo block used by both no-nav/pre-login and nav/post-login headers (base_nav_*.html)
+  - Include APP_VERSION in standard logo block
+  - Place message block below navigation
+  - Implement consistent save/cancel buttons
+  - Implement acccordion glyphicon
+  - Rename several templates with better names 
+  - New syslog_standard_10514 and syslog_relp_10515 check boxes model fields
+
 v1.2.2 20221111 JP
   - New 'viewers' group, update all views to require editor or viewer privs as appropriate
 
