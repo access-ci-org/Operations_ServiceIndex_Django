@@ -1,3 +1,6 @@
+v2.0.1 TBD JP
+  - Set btn-access-auth border-radius
+
 v2.0.0 20221128 JP
   - Upgrade and convert to django-bootstrap-v5 installed in pipenv, remove old local version
   - Upgrade and convert to JQuery Core 3.6.1 and JQuery UI 1.13.1 loaded from code.jquery.com cdn, remove old local version
