@@ -25,14 +25,14 @@
         {% endif %}Services</a></li>
 
         <li class="nav-item">
+        {% if page == 'service' %}<a class="nav-link active" aria-current="page" href="#">
+        {% else %}<a class="nav-link" href="{% url 'services:add_service' %}">
+        {% endif %}Add New Service</a></li>
+
+        <li class="nav-item">
         {% if page == 'hosts' %}<a class="nav-link active" aria-current="page" href="#">
         {% else %}<a class="nav-link" href="{% url 'services:hosts' 'hostname' %}">
         {% endif %}Hosts</a></li>
-
-        <li class="nav-item">
-        {% if page == 'events' %}<a class="nav-link active" aria-current="page" href="#">
-        {% else %}<a class="nav-link" href="{% url 'services:events' %}">
-        {% endif %}Events</a></li>
 
         <li class="nav-item">
         {% if page == 'people' %}<a class="nav-link active" aria-current="page" href="#">
@@ -40,14 +40,14 @@
         {% endif %}People</a></li>
 
         <li class="nav-item">
-        {% if page == 'export' %}<a class="nav-link active" aria-current="page" href="#">
-        {% else %}<a class="nav-link" href="{% url 'services:export' %}">
-        {% endif %}Export...</a></li>
-            
+        {% if page == 'events' %}<a class="nav-link active" aria-current="page" href="#">
+        {% else %}<a class="nav-link" href="{% url 'services:events' %}">
+        {% endif %}Events</a></li>
+
         <li class="nav-item">
-        {% if page == 'service' %}<a class="nav-link active" aria-current="page" href="#">
-        {% else %}<a class="nav-link" href="{% url 'services:add_service' %}">
-        {% endif %}Add New Service</a></li>
+        {% if page == 'metrics' %}<a class="nav-link active" aria-current="page" href="#">
+        {% else %}<a class="nav-link" href="{% url 'services:metrics' %}">
+        {% endif %}Metrics</a></li>
 
         <li class="nav-item">
         {% if page == 'view_log' %}<a class="nav-link active" aria-current="page" href="#">
@@ -55,10 +55,10 @@
         {% endif %}View Log</a></li>
 
         <li class="nav-item">
-        {% if page == 'metrics' %}<a class="nav-link active" aria-current="page" href="#">
-        {% else %}<a class="nav-link" href="{% url 'services:metrics' %}">
-        {% endif %}Metrics</a></li>
-
+        {% if page == 'export' %}<a class="nav-link active" aria-current="page" href="#">
+        {% else %}<a class="nav-link" href="{% url 'services:export' %}">
+        {% endif %}Export...</a></li>
+            
         <li class="nav-item">
         {% if page == 'log_out' %}<a class="nav-link active" aria-current="page" href="#">
         {% else %}<a class="nav-link" href="{% url 'services:clear_and_logout' %}">

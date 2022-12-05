@@ -190,7 +190,7 @@ def update_service(request):
         link_formset = LinkFormSet(request.POST, prefix='links', queryset=related_links)
 #            initial=[{'service': service_id, 'service_id': service_id}])
         for link_form in link_formset:
-            link_form.instance.service_id = service_id
+            link_form.instance.service_id = service.id
             if link_form.has_changed():
                 if link_form.is_valid():
                     link_form.save()
@@ -213,7 +213,7 @@ def update_service(request):
         host_formset = HostFormSet(request.POST, prefix='hosts', queryset=related_hosts)
 #            initial=[{'service': service_id, 'service_id': service_id}])
         for host_form in host_formset:
-            host_form.instance.service_id = service_id
+            host_form.instance.service_id = service.id
             if host_form.has_changed():
 #                host_form.service = service_id
 #                host_form.service_id = service_id

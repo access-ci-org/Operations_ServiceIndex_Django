@@ -1,5 +1,10 @@
-v2.0.1 TBD JP
+v2.0.1 20221206 JP
+  - Fix new service bug that prevented links and hosts from being added
   - Set btn-access-auth border-radius
+  - Include information/help glyphicon in header linking to application information in the operations portal
+  - Turn version in header into a link to GitHub source
+  - Improve navigation item order
+  - Fix service edit button width
 
 v2.0.0 20221128 JP
   - Upgrade and convert to django-bootstrap-v5 installed in pipenv, remove old local version

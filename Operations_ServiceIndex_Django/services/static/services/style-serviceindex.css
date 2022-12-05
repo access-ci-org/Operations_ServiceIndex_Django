@@ -286,6 +286,10 @@ td.outlined {
     content: "\e014"
 }
 
+.glyphicon-info-sign:before {
+    content: "\e086"
+}
+
 .accordion-button::after {
     order: -1;
     margin-left: 0;
