@@ -329,6 +329,8 @@ def export(request):
             t = get_template('services/export.txt')
             context = {'services':services}
             response.write(t.render(context, request))
+            msg = '{} exported data'.format(request.user.username)
+            logger.info(msg)
             return response
 
     else:
@@ -705,10 +707,10 @@ def add_event(request):
             e = form.save()     # creates Event
             # make status entries for each host
             for h in Host.objects.filter(service__deprecated=False):
-                hes = HostEventStatus(event=e,host=h,
-                        status=HostEventStatus.UNCHECKED)
+                hes = HostEventStatus(event=e, host=h, status=HostEventStatus.UNCHECKED)
                 hes.save()
-                
+            msg = '{} reported new event: {}'.format(request.user.username, e.name)
+            logger.info(msg)
             return redirect(reverse('services:events'))
     else:
         form = AddEventForm()
@@ -757,6 +759,8 @@ def update_event(request, hes_id):
             log.save()
             hes.status = form.cleaned_data['status']
             hes.save()
+            msg = '{} logged event for \'{}\' host'.format(request.user.username, hes.host.hostname)
+            logger.info(msg)
             return redirect(reverse('services:event', args=[hes.event.id]))
     else:
         #form = UpdateEventForm(instance=hes)

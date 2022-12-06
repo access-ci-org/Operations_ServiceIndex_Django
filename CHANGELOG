@@ -1,4 +1,7 @@
-v2.0.1 20221206 JP
+v2.0.2 20221206 JP
+  - Improve logging
+
+v2.0.1 20221205 JP
   - Fix new service bug that prevented links and hosts from being added
   - Set btn-access-auth border-radius
   - Include information/help glyphicon in header linking to application information in the operations portal
