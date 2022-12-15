@@ -13,12 +13,11 @@
             <div class="card-header"><p class="lead">Login required</p></div>
             <div class="card-body">
                 <form method="POST">
-                {% csrf_token %}
-                {% if redirect_field_value %}
-                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
-                {% endif %}
-                <button class="primaryAction btn btn-access-auth" type="submit">{% trans "Login to ACCESS CI" %}</button>
-
+                    {% csrf_token %}
+                    {% if redirect_field_value %}
+                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+                    {% endif %}
+                    <button class="primaryAction btn btn-access-auth" type="submit">{% trans "Login to ACCESS CI" %}</button>
                 </form>
             </div><!-- div card-body -->
         </div><!-- div card -->

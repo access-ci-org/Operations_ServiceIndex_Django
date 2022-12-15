@@ -367,14 +367,14 @@
     
     <div class="row mt-4">
         <div class="col-2">
-        {% if service_id == 0 %}
-            <input class="btn btn-primary" type="submit" value="Add Service" />
-        {% else %}
-            <input class="btn btn-primary" type="submit" value="Save" />
-        {% endif %}
+            <a class="btn btn-secondary" href="{% url 'services:index' %}" role="button">Cancel</a>
         </div>
         <div class="col-2">
-            <a class="btn btn-secondary" href="{% url 'services:index' %}" role="button">Cancel</a>
+            {% if service_id == 0 %}
+            <input class="btn btn-primary" type="submit" value="Add Service" />
+            {% else %}
+            <input class="btn btn-primary" type="submit" value="Save" />
+            {% endif %}
         </div>
     </div> <!-- row -->
  
