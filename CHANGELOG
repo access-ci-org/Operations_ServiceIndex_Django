@@ -1,10 +1,18 @@
-v2.1.0 20221215 JP
+v2.1.0 2022-12-26 JP
   - Ordered Cancel button left, Save button right
-
-v2.0.2 20221206 JP
+  - Added LogEntry fields that reference host, staff, and event for expanded logging
+  - Improve LogEntry viewing for expanded logging
+  - login/logout logging with IP address to LogEntry and log file so that we can remote rsyslog it
+  - New /services/api/hosts/ returns hosts and related service json w/o people phones or emails
+  - New /services/login url for logging
+  - Use djangorestframework for api serializers
+  - Significant update_service improvements & fixes to properly handle form errors
+  - Standardize on "Y/m/d H:i" datetime format
+  
+v2.0.2 2022-12-06 JP
   - Improve logging
 
-v2.0.1 20221205 JP
+v2.0.1 2022-12-05 JP
   - Fix new service bug that prevented links and hosts from being added
   - Set btn-access-auth border-radius
   - Include information/help glyphicon in header linking to application information in the operations portal
@@ -12,7 +20,7 @@ v2.0.1 20221205 JP
   - Improve navigation item order
   - Fix service edit button width
 
-v2.0.0 20221128 JP
+v2.0.0 2022-11-28 JP
   - Upgrade and convert to django-bootstrap-v5 installed in pipenv, remove old local version
   - Upgrade and convert to JQuery Core 3.6.1 and JQuery UI 1.13.1 loaded from code.jquery.com cdn, remove old local version
   - Support connecting sociallogin to existing Drupal user
@@ -27,17 +35,17 @@ v2.0.0 20221128 JP
   - Rename several templates with better names 
   - New syslog_standard_10514 and syslog_relp_10515 check boxes model fields
 
-v1.2.2 20221111 JP
+v1.2.2 2022-11-11 JP
   - New 'viewers' group, update all views to require editor or viewer privs as appropriate
 
-v1.2.1 20221111 JP
+v1.2.1 2022-11-11 JP
   - Fix link form saving bug
   - Make metrics entry dates Central time aware since log entries do have a UTC timzeone
   - When log entries are display, make it clear they are in UTC
   - Display APP_VERSION / GitHub tag in header
   - Show (username) in logout link
 
-v1.2.0 20221107 JP
+v1.2.0 2022-11-07 JP
   - More opsres to serviceindex changes
   - Convert to use ModelForms
   - Separate add_service, edit_service, update_service urls and functions
@@ -51,17 +59,17 @@ v1.2.0 20221107 JP
   - Remove some legacy code
   - Other minor improvements
 
-v1.1.1 20221028 JP
+v1.1.1 2022-10-28 JP
   - Remove logacy socialauth configuration
 
-v1.1.0 20221028 JP
+v1.1.0 2022-10-28 JP
   - Renamed application from Registry to ServiceIndex
 
-tag-1.0.2 20221013 JP
+tag-1.0.2 2022-10-13 JP
   - Add required trailing slash to login/ url
 
-tag-1.0.1 20220923 JP
+tag-1.0.1 2022-09-23 JP
   - Improved Docker build and implement https support
 
-tag-1.0.0 20220920 JP
+tag-1.0.0 2022-09-20 JP
   - Initial check-in of fully functional application

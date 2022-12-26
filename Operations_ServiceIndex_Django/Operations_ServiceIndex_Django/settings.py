@@ -80,7 +80,7 @@ SITE_ID = 1
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/cilogon/login/'
 LOGIN_URL = '/accounts/cilogon/login/'
-LOGIN_REDIRECT_URL = '/services/'
+LOGIN_REDIRECT_URL = '/services/login'
 #SOCIALACCOUNT_ADAPTER = 'services.views.MySocialAccountAdapter'
 #SOCIALACCOUNT_STORE_TOKENS = True
 
@@ -203,6 +203,8 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 # Logging setup
 import logging
 from logging.handlers import SysLogHandler
@@ -244,8 +246,6 @@ LOGGING = {
         }
     }
 }
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 APP_NAME = 'Service Index'
 APP_VERSION = CONF['APP_VERSION']

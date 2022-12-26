@@ -2,7 +2,7 @@
 #import time
 from django.contrib.auth.models import User
 from django.dispatch import receiver, Signal
-from allauth.account.signals import user_logged_in
+from allauth.account.signals import user_logged_in, user_logged_out
 from allauth.account.utils import sync_user_email_addresses, setup_user_email
 from allauth.socialaccount.providers.cilogon import provider
 from allauth.socialaccount.providers.oauth2.client import OAuth2Error
@@ -25,9 +25,16 @@ def set_username(request, user, **kwargs):
 
     user.username = username
     user.save()
-    msg = '{} logged in as {}'.format(subject, request.user.username)
+    remote_ip = request.META.get('HTTP_X_FORWARDED_FOR')
+    if not remote_ip:
+        remote_ip = request.META.get('REMOTE_ADDR')
+    msg = '{} logged in as {} from {}'.format(subject, request.user.username, remote_ip)
     logger.info(msg)
 
+@receiver(user_logged_out)
+def logout_log(request, user, **kwargs):
+    msg = '{} logged out'.format(request.user.username)
+    logger.info(msg)
 
 @receiver(pre_social_login)
 def connect_existing_user(request, sociallogin, **kwargs):
@@ -48,4 +55,3 @@ def connect_existing_user(request, sociallogin, **kwargs):
     setup_user_email(request, existing_user, [])
     msg = 'login as email {} connected to {}'.format(email, existing_user.username)
     logger.info(msg)
-

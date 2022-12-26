@@ -20,6 +20,7 @@ urlpatterns = [
     path('export/', views.export, name="export"),
     path('custom/', views.custom, name="custom"),
     path('listing/', views.listing, name="listing"),
+    path('login/', views.login, name="login"),
     path('log_listing/', views.log_listing, name="log_listing"),
     path('view_log/', views.view_log, name="view_log"),
     path('metrics/', views.metrics, name="metrics"),
@@ -27,6 +28,7 @@ urlpatterns = [
     path('events/', views.events, name="events"),
     re_path('^event/(?P<event_id>\d+)$', views.event, name="event"),
     re_path('^update_event/(?P<hes_id>\d+)$', views.update_event, name="update_event"),
+    path('api/hosts/', views.api_hosts, name="api_hosts"),
     path('clear_and_logout/', views.clear_and_logout, name='clear_and_logout'),
     path('unprivileged/', views.unprivileged, name="unprivileged"),
 ]

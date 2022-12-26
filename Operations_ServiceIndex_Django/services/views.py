@@ -1,3 +1,4 @@
+from django.core.serializers import serialize
 from django.shortcuts import render, redirect
 from django.forms.formsets import formset_factory
 from django.forms import modelformset_factory
@@ -6,6 +7,7 @@ from django.urls import reverse, reverse_lazy
 from django.template.loader import get_template
 from django.template import Context
 from django.utils import timezone
+
 from datetime import datetime, timedelta, time
 from zoneinfo import ZoneInfo
 
@@ -13,9 +15,11 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf import settings
 
 from services.models import *
+from services.serializers import *
 import services.signals
 
 import collections
+import json
 import logging
 logger = logging.getLogger(__name__)
 import re
@@ -29,8 +33,11 @@ def viewers_check(user):
 def unprivileged(request):
     return render(request, 'services/unprivileged.html')
 
+def is_privileged(request):
+    return True if request.user.username == 'navarro' else False
+
 @login_required
-@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def index(request):
     """
     Main index view of list of services; can have one GET parameter specifying
@@ -61,16 +68,14 @@ def index(request):
     return render(request, 'services/services_index.html', context)
 
 @login_required
-@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def add_service(request):
     service_form = ServiceForm(prefix='service', instance=Service())
 
     LinkFormSet = modelformset_factory(Link, form=LinkForm, extra=1)
-#    , fields=('id', 'url', 'description'))
     link_formset = LinkFormSet(prefix='links', queryset=Link.objects.none())
 
     HostFormSet = modelformset_factory(Host, form=HostForm, extra=1)
-#    , fields='__all__', exclude=('service',))
     host_formset = HostFormSet(prefix='hosts', queryset=Host.objects.none())
     
     context = {'page': 'service',
@@ -79,11 +84,12 @@ def add_service(request):
             'host_formset': host_formset,
             'service_id': 0,
             'debug': 'first time',
+            'privileged': is_privileged(request),
             'app_name': settings.APP_NAME}
     return render(request, 'services/service.html', context)
 
 @login_required
-@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def edit_service(request, service_id):
     # TODO check for valid service_id and return message??
     service = Service.objects.get(pk=service_id)
@@ -104,36 +110,30 @@ def edit_service(request, service_id):
     related_links = service.link_set.all()
     link_extra = 0 if related_links else 1 # An empty entry if there are none
     LinkFormSet = modelformset_factory(Link, form=LinkForm, extra=link_extra, can_delete=True)
-#        fields=('id', 'url', 'description'))
     link_formset = LinkFormSet(prefix='links', queryset=related_links)
-#        , initial=[{'service': service_id, 'service_id': service_id}])
 
     related_hosts = service.host_set.all()
     host_extra = 0 if related_hosts else 1 # An empty entry if there are none
     HostFormSet = modelformset_factory(Host, form=HostForm, extra=host_extra, can_delete=True)
-#        fields='__all__', exclude=('service',))
     host_formset = HostFormSet(prefix='hosts', queryset=related_hosts)
-#        , initial=[{'service': service_id, 'service_id': service_id}])
     
-    privileged = True if request.user.username == 'navarro' else False
-
     context = {'page': 'service',
             'form': service_form,
             'host_formset': host_formset,
             'link_formset': link_formset,
             'service_id': service_id,
-            'privileged': privileged,
+            'debug': 'edit',
+            'privileged': is_privileged(request),
             'app_name': settings.APP_NAME
     }
     return render(request, 'services/service.html', context)
 
 @login_required
-@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def update_service(request):
     """
-    Shows form for editing a service; service_id is hidden field--if it's 0, then we're adding new entry.
+    Form for editing a service; the hidden service_id is None/zero for a new service
     """
-    # Retrieve/initialize model objects; service_id is true and not zero if service exist
     service_id = int(request.POST['service_id'])
     service = Service.objects.get(pk=service_id) if service_id else Service()
     service_form = ServiceForm(request.POST, prefix='service', instance=service)
@@ -143,149 +143,141 @@ def update_service(request):
     related_links = service.link_set.all() if service_id else Link.objects.none()
     link_extra = 1 if not service_id or not related_links else 0
     LinkFormSet = modelformset_factory(Link, form=LinkForm, can_delete=can_delete, extra=link_extra)
-#        fields=('id', 'url', 'description'))
+    link_formset = LinkFormSet(request.POST, prefix='links', queryset=related_links)
 
     related_hosts = service.host_set.all() if service_id else Host.objects.none()
     host_extra = 1 if not service_id or not related_hosts else 0
     HostFormSet = modelformset_factory(Host, form=HostForm, can_delete=can_delete, extra=host_extra)
-#        fields='__all__', exclude=('service',))
-#    link_extra = int(request.POST.get('links-TOTAL_FORMS', '0')) + 1 if 'add_link' in request.POST else 0
-#    host_extra = int(request.POST.get('hosts-TOTAL_FORMS', '0')) + 1 if 'add_host' in request.POST else 0
-    
-    if 'add_host' in request.POST:
-        debug = 'add host'
-        PCP = request.POST.copy()
-        PCP['hosts-TOTAL_FORMS'] = int(PCP['hosts-TOTAL_FORMS']) + 1
-        link_formset = LinkFormSet(request.POST, prefix='links', queryset=related_links)
-#            initial=[{'service': service_id, 'service_id': service_id}])
-        host_formset = HostFormSet(PCP, prefix='hosts', queryset=related_hosts)
-#            initial=[{'service': service_id, 'service_id': service_id}])
+    host_formset = HostFormSet(request.POST, prefix='hosts', queryset=related_hosts)
 
-    elif 'add_link' in request.POST:
-        debug = 'add link'
-        PCP = request.POST.copy()
-        PCP['links-TOTAL_FORMS'] = int(PCP['links-TOTAL_FORMS']) + 1
-        
-        link_formset = LinkFormSet(PCP, prefix='links', queryset=related_links)
-#            initial=[{'service': service_id, 'service_id': service_id}])
-        host_formset = HostFormSet(request.POST, prefix='hosts', queryset=related_hosts)
-#            initial=[{'service': service_id, 'service_id': service_id}])
-        
-    else: # Regular "Save Changes"
-        debug = 'updating'
-        if service_form.is_valid():
-            # if service_id != 0, then we're editing existing service
-            if not service_id:
-                msg = '{} added \'{}\' service'.format(request.user.username, service.name)
-            elif service_form.has_changed():
-                msg = '{} updated \'{}\' service'.format(request.user.username, service.name)
-            else:
-                msg = None
-            if msg:
-                service = service_form.save()
-                logger.info(msg)
-                make_log_entry(request.user.username,service,msg)
-                
-        # save any valid links and add to service
-        link_formset = LinkFormSet(request.POST, prefix='links', queryset=related_links)
-#            initial=[{'service': service_id, 'service_id': service_id}])
-        for link_form in link_formset:
-            link_form.instance.service_id = service.id
-            if link_form.has_changed():
-                if link_form.is_valid():
-                    link_form.save()
-#            if link_form.has_changed():
-##             and link_form.changed_data != ['service']:
-##                link_form.service = service
-##                link_form.service_id = service_id
-#                link_form.service = service_id
-#                if link_form.is_valid():
-##                    link = link_form.save(commit=False)
-#                    link = link_form.save()
-##                    link.service_id = service_id
-##                    link.save()
-##                    link_form.save()
-##            if not link_formset.errors:
-##                link_formset.save()
-        link_formset.save()
-
-        # save any valid hosts and add to service
-        host_formset = HostFormSet(request.POST, prefix='hosts', queryset=related_hosts)
-#            initial=[{'service': service_id, 'service_id': service_id}])
-        for host_form in host_formset:
-            host_form.instance.service_id = service.id
-            if host_form.has_changed():
-#                host_form.service = service_id
-#                host_form.service_id = service_id
-                if host_form.is_valid():
-                    if not host_form.cleaned_data['location']:
-                        host_form.instance.location, created = Site.objects.get_or_create(
-                                site=host_form.cleaned_data['location_new'])
-
-                    if not host_form.cleaned_data['sys_admin']: # Have new person
-                        last, first = re.split(r'\W+', host_form.cleaned_data['sys_admin_name'], maxsplit=1)
-                        host_form.instance.sys_admin, created = Staff.objects.get_or_create(
-                                last_name=last,
-                                name=first,
-                                email=host_form.cleaned_data['sys_admin_email'],
-                                phone=host_form.cleaned_data['sys_admin_phone'])
-
-                    if not host_form.cleaned_data['poc_primary']: # Have new person
-                        last, first = re.split(r'\W+', host_form.cleaned_data['poc_primary_name'], maxsplit=1)
-                        host_form.instance.poc_primary, created = Staff.objects.get_or_create(
-                                last_name=last,
-                                name=first,
-                                email=host_form.cleaned_data['poc_primary_email'],
-                                phone=host_form.cleaned_data['poc_primary_phone'])
-
-                    if not host_form.cleaned_data['poc_backup']: # Have new person
-                        last, first = re.split(r'\W+', host_form.cleaned_data['poc_backup_name'], maxsplit=1)
-                        last_name, first_name = host_form.cleaned_data['poc_backup_name'].split(None, 1)
-                        host_form.instance.poc_backup, created = Staff.objects.get_or_create(
-                                last_name=last,
-                                name=first,
-                                email=host_form.cleaned_data['poc_backup_email'],
-                                phone=host_form.cleaned_data['poc_backup_phone'])
-#                    host = host_form.save(commit=False)
-#                    host.service_id = service_id
-#                    host.save()
-#                    host_form.save()
-#            if not host_formset.errors:
-#                host_formset.save()
-        host_formset.save()
-#        if host_formset.total_error_count() == 0:
-#            host_formset.save()
-
-        if 'deprecated' in request.POST:
-            service.deprecated = True
-            service.save()
-            msg = '{} deprecated \'{}\' service'.format(request.user.username, service.name)
-            logger.info(msg)
-            make_log_entry(request.user.username,service,msg)
-            
-        if link_formset.total_error_count() == 0 and host_formset.total_error_count() == 0:
-            return redirect(reverse('services:index'))
-
-    context = {'page': 'service',
+    # Prepare the context to return to the form if there are errors when adding a link or host
+    CTX = {'page': 'service',
             'form': service_form,
             'host_formset': host_formset,
             'link_formset': link_formset,
             'service_id': service_id,
-            'debug': debug,
+            'debug': None,
+            'privileged': is_privileged(request),
             'app_name': settings.APP_NAME}
-    return render(request, 'services/service.html', context)
+    
+    if 'add_link' in request.POST:
+        CTX['debug'] = 'add link'
+        PCP = request.POST.copy()
+        PCP['links-TOTAL_FORMS'] = int(PCP['links-TOTAL_FORMS']) + 1
+        CTX['link_formset'] = LinkFormSet(PCP, prefix='links', queryset=related_links)
+        return render(request, 'services/service.html', CTX)
+
+    if 'add_host' in request.POST:
+        CTX['debug'] = 'add host'
+        PCP = request.POST.copy()
+        PCP['hosts-TOTAL_FORMS'] = int(PCP['hosts-TOTAL_FORMS']) + 1
+        CTX['host_formset'] = HostFormSet(PCP, prefix='hosts', queryset=related_hosts)
+        return render(request, 'services/service.html', CTX)
+
+    # Processing a 'Save'
+    CTX['debug'] = 'updating'
+
+    if not service_form.is_valid():
+        return render(request, 'services/service.html', CTX)
+
+    # if service_id != 0, then we're editing existing service
+    if not service_id:
+        msg = 'added new'
+    elif service_form.has_changed():
+        msg = 'updated'
+    else:
+        msg = None
+    if msg:
+        service = service_form.save()
+        logger.info('{} {} \'{}\' service'.format(request.user.username, msg, service.name))
+        make_log_entry(request.user.username, msg, service=service)
+    
+    ERRORS = 0
+    # save any valid links and add to service
+    for link_form in link_formset:
+        link_form.instance.service_id = service.id
+        if link_form.has_changed():
+            if not link_form.is_valid():
+                return render(request, 'services/service.html', CTX)
+            link_form.save()
+    link_formset.save()
+
+    # save any valid hosts and add to service
+    ADDED = []
+    UPDATED = []
+    for host_form in host_formset:
+        host_form.instance.service_id = service.id
+        if host_form.has_changed():
+            if not host_form.is_valid():
+                return render(request, 'services/service.html', CTX)
+
+            if not host_form.cleaned_data['location']:
+                host_form.instance.location, created = Site.objects.get_or_create(
+                        site=host_form.cleaned_data['location_new'])
+
+            if not host_form.cleaned_data['sys_admin']: # Have new person
+                last, first = re.split(r'\W+', host_form.cleaned_data['sys_admin_name'], maxsplit=1)
+                host_form.instance.sys_admin, created = Staff.objects.get_or_create(
+                        last_name=last,
+                        name=first,
+                        email=host_form.cleaned_data['sys_admin_email'],
+                        phone=host_form.cleaned_data['sys_admin_phone'])
+                if created:
+                    msg = 'added new'
+                    logger.info('{} {} \'{}\' staff'.format(request.user.username, msg, host_form.instance.sys_admin))
+                    make_log_entry(request.user.username, msg, staff=host_form.instance.sys_admin)
+
+            if not host_form.cleaned_data['poc_primary']: # Have new person
+                last, first = re.split(r'\W+', host_form.cleaned_data['poc_primary_name'], maxsplit=1)
+                host_form.instance.poc_primary, created = Staff.objects.get_or_create(
+                        last_name=last,
+                        name=first,
+                        email=host_form.cleaned_data['poc_primary_email'],
+                        phone=host_form.cleaned_data['poc_primary_phone'])
+                if created:
+                    msg = 'added new'
+                    logger.info('{} {} \'{}\' staff'.format(request.user.username, msg, host_form.instance.poc_primary))
+                    make_log_entry(request.user.username, msg, staff=host_form.instance.poc_primary)
+
+            if not host_form.cleaned_data['poc_backup']: # Have new person
+                last, first = re.split(r'\W+', host_form.cleaned_data['poc_backup_name'], maxsplit=1)
+                last_name, first_name = host_form.cleaned_data['poc_backup_name'].split(None, 1)
+                host_form.instance.poc_backup, created = Staff.objects.get_or_create(
+                        last_name=last,
+                        name=first,
+                        email=host_form.cleaned_data['poc_backup_email'],
+                        phone=host_form.cleaned_data['poc_backup_phone'])
+                if created:
+                    msg = 'added new'
+                    logger.info('{} {} \'{}\' staff'.format(request.user.username, msg, host_form.instance.poc_backup))
+                    make_log_entry(request.user.username, msg, staff=host_form.instance.poc_backup)
+            msg = 'updated' if host_form.instance.id else 'added new'
+            host_form.save()
+            logger.info('{} {} \'{}\' service \'{}\' host'.format(request.user.username, msg, service.name, host_form.instance.label))
+            make_log_entry(request.user.username, msg, service=service, host=host_form.instance)
+    host_formset.save()
+        
+    if 'deprecated' in request.POST:
+        service.deprecated = True
+        service.save()
+        msg = 'deprecated'
+        logger.info('{} {} \'{}\' service'.format(request.user.username, msg, service.name))
+        make_log_entry(request.user.username, msg, service=service)
+        
+    if link_formset.total_error_count() == 0 and host_formset.total_error_count() == 0:
+        return redirect(reverse('services:index'))
+
+    return render(request, 'services/service.html', CTX)
 
 
 @login_required
-@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def export(request):
     """
     Shows form for selecting fields; when fields are selected, renders plain
     text listing.
     """
-
-    possible_service_fields = ['description', 'dependencies', 
-            'service_hostname',
+    possible_service_fields = ['description', 'dependencies', 'service_hostname',
             'failover_process', 'failover_last_tested', 'service_last_verified', 'lb', 'ha', 'otp','nagios_service']
     possible_host_fields = ['location', 'hostname', 'ip_address',
             'availability', 'support', 'sys_admin', 'host_last_verified',
@@ -332,7 +324,6 @@ def export(request):
             msg = '{} exported data'.format(request.user.username)
             logger.info(msg)
             return response
-
     else:
         form = ExportChoicesForm()
 
@@ -351,15 +342,14 @@ def export(request):
     return render(request, 'services/export_choices.html', context)
 
 @login_required
-@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def custom(request):
     """
     Shows form for selecting fields; when fields are selected, renders 
     html table (with print option?)
     """
 
-    possible_service_fields = ['description', 'dependencies', 
-            'service_hostname',
+    possible_service_fields = ['description', 'dependencies', 'service_hostname',
             'failover_process', 'failover_last_tested', 'service_last_verified', 'lb', 'ha', 'otp']
     possible_host_fields = ['location', 'hostname', 'ip_address',
             'availability', 'support', 'sys_admin', 'host_last_verified',
@@ -426,12 +416,12 @@ def custom(request):
     return render(request, 'services/export_choices.html', context)
 
 @login_required
-@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def hosts(request, order_field='hostname'):
 #    hosts = {}
     hosts = collections.OrderedDict()
     hostnames = []
-    hosts_list = Host.objects.order_by(order_field)   
+    hosts_list = Host.objects.order_by(order_field)
     # TODO this should not get ones that are deprecated
 
     if order_field != 'service__name':
@@ -479,7 +469,7 @@ def hosts(request, order_field='hostname'):
     return render(request, 'services/hosts.html', context)
 
 @login_required
-@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def hosts_by_service(request):
     s = ''
     services = []
@@ -497,7 +487,7 @@ def hosts_by_service(request):
     return render(request, 'services/hosts_by_service.html', context)
 
 @login_required
-@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def people(request):
     people = []
     # TODO this should not get ones that are deprecated
@@ -517,30 +507,31 @@ def people(request):
     return render(request, 'services/people.html', context)
 
 @login_required
-@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def edit_staff(request, staff_id):
     staff = Staff.objects.get(pk=staff_id)
     if request.POST:
-        form = StaffForm(request.POST)
+        form = StaffForm(request.POST, instance=staff)
         if form.is_valid():
-            staff.email = form.cleaned_data['email']
-            staff.phone = form.cleaned_data['phone']
-            staff.save()
-            msg = '{} updated \'{}\' staff'.format(request.user.username, staff.name)
-            logger.info(msg)
+            if form.has_changed():
+                staff.email = form.cleaned_data['email']
+                staff.phone = form.cleaned_data['phone']
+                staff.save()
+                msg = 'updated'
+                logger.info('{} {} \'{}\' staff'.format(request.user.username, msg, staff.name))
+                make_log_entry(request.user.username, msg, staff=staff)
             return redirect(reverse('services:people'))
     else:
-        form = StaffForm(initial={'name':staff.name, 'last_name':staff.last_name, 'email':staff.email,'phone':staff.phone})
+        form = StaffForm(initial={'name':staff.name, 'last_name':staff.last_name, 'email':staff.email, 'phone':staff.phone})
 
     context = {'page': 'people', 'form':form, 
-            'staff_name':staff.name,
-            'staff_id':staff_id,
+            'staff_name':staff.name, 'staff_id':staff_id,
             'app_name': settings.APP_NAME}
     return render(request, 'services/edit_staff.html', context)
 
 
 @login_required
-@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def metrics(request):
     start = None
     end = None
@@ -559,17 +550,17 @@ def metrics(request):
 
     # count logs
     if start and end:
-        logs = LogEntry.objects.filter(timestamp__gte=start, timestamp__lte=end)
+        logs = LogEntry.objects.filter(timestamp__gte=start, timestamp__lte=end, service__isnull=False)
         heading = ('Activity from ' + start.strftime('%m/%d/%Y') + ' to ' +
                 end.strftime('%m/%d/%Y'))
     elif start:
-        logs = LogEntry.objects.filter(timestamp__gte=start)
+        logs = LogEntry.objects.filter(timestamp__gte=start, service__isnull=False)
         heading = 'Activity since ' + start.strftime('%m/%d/%Y') 
     elif end:
-        logs = LogEntry.objects.filter(timestamp__lte=end)
+        logs = LogEntry.objects.filter(timestamp__lte=end, service__isnull=False)
         heading = 'Activity before ' + end.strftime('%m/%d/%Y') 
     else:
-        logs = LogEntry.objects.all()
+        logs = LogEntry.objects.filter(service__isnull=False)
         heading = 'All Activity'
 
     updates = 0
@@ -602,7 +593,7 @@ def metrics(request):
 
 
 @login_required
-@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def listing(request):
     """
     This is used for text dump of all services with fields separated by pipes;
@@ -610,11 +601,6 @@ def listing(request):
     technique for rendering txt file is documented here:
     https://docs.djangoproject.com/en/dev/howto/outputting-csv/
     """
-    #debug = request.user.is_active
-    #if request.user.is_authenticated():
-    #    debug = 'YES'
-    #else:
-    #    debug = 'NO'
     debug = request.user.username
     #debug = request.session['debug']
     response = http.HttpResponse(content_type='text/plain')
@@ -629,7 +615,7 @@ def listing(request):
     return response
 
 @login_required
-@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def log_listing(request):
     """
     This is used for text dump of all log entries;
@@ -645,22 +631,37 @@ def log_listing(request):
     response.write(t.render(context))
     return response
 
-def make_log_entry(username, service, msg):
-    le = LogEntry(username=username, service=service, msg=msg)
+def make_log_entry(username, msg, service=None, host=None, staff=None, event=None):
+    """
+    Saves service, host, staff, and event changes to a table so that we can display the history
+    We also use logger to generate normal/critical log file entries that can be aggregated with rsyslog
+    """
+    le = LogEntry(username=username, msg=msg, service=service, host=host, staff=staff, event=event)
     le.save()
 
 @login_required
-@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def view_log(request):
     log = LogEntry.objects.all().order_by('-timestamp')
-    context = {'page': 'view_log', 'log': log,
-            'app_name': settings.APP_NAME}
+    context = {'page': 'view_log', 'log': log, 'app_name': settings.APP_NAME}
     return render(request, 'services/view_log.html', context)
 
 @login_required
+def login(request):
+    remote_ip = request.META.get('HTTP_X_FORWARDED_FOR')
+    if not remote_ip:
+        remote_ip = request.META.get('REMOTE_ADDR')
+    msg = 'login from {}'.format(remote_ip)
+#   Standard logging handled in signals.py
+#    logger.info('{} {}'.format(request.user.username, msg))
+    make_log_entry(request.user.username, msg)
+    return redirect(reverse('services:index'))
+
+@login_required
 def clear_and_logout(request):
-    # clear any locks by current user
+#   Clear any locks by current user
     EditLock.objects.filter(username=request.user.username).delete()
+#   Standard logging handled in signals.py
     return redirect(reverse('account_logout'))
 
 @login_required
@@ -669,7 +670,7 @@ def edit_sorry(request):
     return render(request, 'services/edit_sorry.html', context)
 
 @login_required
-@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def events(request):
     events = []
     for e in Event.objects.order_by('-created'):
@@ -699,7 +700,7 @@ def events(request):
     return render(request, 'services/events.html', context)
 
 @login_required
-@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def add_event(request):
     if request.POST:
         form = AddEventForm(request.POST)
@@ -709,8 +710,9 @@ def add_event(request):
             for h in Host.objects.filter(service__deprecated=False):
                 hes = HostEventStatus(event=e, host=h, status=HostEventStatus.UNCHECKED)
                 hes.save()
-            msg = '{} reported new event: {}'.format(request.user.username, e.name)
-            logger.info(msg)
+            msg = 'added new'
+            logger.info('{} {} \'{}\' event'.format(request.user.username, msg, e.name))
+            make_log_entry(request.user.username, msg, event=e)
             return redirect(reverse('services:events'))
     else:
         form = AddEventForm()
@@ -720,7 +722,7 @@ def add_event(request):
     return render(request, 'services/add_event.html', context)
 
 @login_required
-@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def event(request, event_id):
     # col offsets to use in template for each status tag
     cols = {HostEventStatus.UNCHECKED:0,HostEventStatus.IN_PROGRESS:3,
@@ -745,7 +747,7 @@ def event(request, event_id):
     return render(request, 'services/event.html', context)
 
 @login_required
-@user_passes_test(editors_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def update_event(request, hes_id):
     hes = HostEventStatus.objects.get(pk=hes_id)
 
@@ -788,7 +790,7 @@ def do_pdf(template_src, context_dict):
         return http.HttpResponse(result.getvalue(), mimetype='application/pdf')
     return http.HttpResponse('pdf error! %s' % cgi.escape(html))
 
-@user_passes_test(viewers_check,login_url=reverse_lazy('services:unprivileged'))
+@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def make_pdf(request):
     services = []
     for s in Service.objects.order_by('name'):
@@ -796,3 +798,13 @@ def make_pdf(request):
     
     context = {'services':services}
     return do_pdf('services/services_for_pdf.html', context)
+
+@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+def api_hosts(request):
+    objects = Host.objects.all()
+    serializer = Host_Serializer(objects, many=True)
+    response_obj = {
+        'status_code': '200',
+        'results': serializer.data
+    }
+    return http.JsonResponse(response_obj)

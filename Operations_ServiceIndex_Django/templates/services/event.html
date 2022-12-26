@@ -42,8 +42,7 @@
                             </p>
                         </div>
                         <div class="col-sm-7">
-                        {{ log.timestamp|date:"Y/m/d H:i" }} 
-                        <b>{{ log.username }}</b> - {{ log.note }}
+                        {{ log.timestamp|date:"Y/m/d H:i" }} {{ log.username }}: {{ log.note }}
                         </div>
                         </div>
                     {% endfor %}

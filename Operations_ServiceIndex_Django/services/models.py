@@ -120,7 +120,7 @@ class Host(models.Model):
     host_last_verified = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return 'label={}:host={}:service={}:site={}'.format(self.label, self.hostname, self.service, self.location)
+        return 'label={}:host={}:service={}'.format(self.label, self.hostname, self.service)
 
     class Meta:
         db_table = '"serviceindex"."host"'
@@ -132,15 +132,6 @@ class Link(models.Model):
 
     class Meta:
         db_table = '"serviceindex"."link"'
-
-class LogEntry(models.Model):
-    timestamp = models.DateTimeField(auto_now_add=True)
-    username = models.CharField(max_length=16)  # foreign key to django user ?
-    service = models.ForeignKey(Service, on_delete=models.CASCADE,)
-    msg = models.CharField(max_length=1024)
-
-    class Meta:
-        db_table = '"serviceindex"."logentry"'
 
 class EditLock(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -155,6 +146,9 @@ class Event(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=128)
     description = models.CharField(max_length=1024)
+
+    def __str__(self):
+        return '{} (id={})'.format(self.name, self.id)
 
     class Meta:
         db_table = '"serviceindex"."event"'
@@ -191,6 +185,18 @@ class HostEventLog(models.Model):
     class Meta:
         db_table = '"serviceindex"."hosteventlog"'
  
+class LogEntry(models.Model):
+    timestamp = models.DateTimeField(auto_now_add=True)
+    username = models.CharField(max_length=16)  # the user making changes about one of the following
+    service = models.ForeignKey(Service, blank=True, null=True, on_delete=models.CASCADE,)
+    host = models.ForeignKey(Host, blank=True, null=True, on_delete=models.CASCADE,)
+    staff = models.ForeignKey(Staff, blank=True, null=True, on_delete=models.CASCADE,)
+    event = models.ForeignKey(Event, blank=True, null=True, on_delete=models.CASCADE,)
+    msg = models.CharField(max_length=1024)
+
+    class Meta:
+        db_table = '"serviceindex"."logentry"'
+
 # FORMS
 
 class ServiceForm(forms.ModelForm):

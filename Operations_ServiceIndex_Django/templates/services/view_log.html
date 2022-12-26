@@ -4,12 +4,25 @@
 
 {% block content %}
 <h5>Timestmaps are in UTC</h5>
-<ul style="font-size-adjust: 0.5">
-    {% for le in log %}
-        {# format: Jul 01, 2014 4:42 p.m. #}
-        <li><b>{{ le.timestamp|date:"M d, Y P" }}</b> {{ le.msg }}</li>
-        {# format: Tue, 1 Jul 2014 16:42:33 -0400 #}
-        {#<li><b>{{ le.timestamp|date:"r" }}</b> {{ le.msg }}</li>#}
-    {% endfor %}
-</ul>
+<p style="font-size: 12px">
+{% for le in log %}
+    {# format: Jul 01, 2014 4:42 p.m. #}
+    <b>{{ le.timestamp|date:"Y-m-d H:i" }} {{ le.username }}:</b>
+    {% if le.service %}
+        &nbsp;service='{{ le.service }}'
+    {% endif %}
+    {% if le.host %}
+        &nbsp;host='{{ le.host }}'
+    {% endif %}
+    {% if le.staff %}
+        &nbsp;staff='{{ le.staff }}'
+    {% endif %}
+    {% if le.event %}
+        &nbsp;event='{{ le.event }}'
+    {% endif %}
+    &nbsp;{{ le.msg }}</br>
+    {# format: Tue, 1 Jul 2014 16:42:33 -0400 #}
+    {#<li><b>{{ le.timestamp|date:"r" }}</b> {{ le.msg }}</li>#}
+{% endfor %}
+</p>
 {% endblock %}

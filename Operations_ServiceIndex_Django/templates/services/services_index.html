@@ -79,13 +79,13 @@
                                 <strong>Failover: </strong>
                                     {{ s.service.failover_process }}<br />
                                 <strong>Failover last tested: </strong>
-                                    {{ s.service.failover_last_tested|date:"m/d/Y" }}
+                                    {{ s.service.failover_last_tested|date:"Y/m/d" }}
                             </div>
                             <div class="col-md-4">
                                 <strong> Service checked by Nagios: </strong>
                                     {{ s.service.nagios | yesno }}<br />
                                 <strong>Service last verified: </strong>
-                                    {{ s.service.service_last_verified|date:"m/d/Y" }}
+                                    {{ s.service.service_last_verified|date:"Y/m/d" }}
                             </div>
                         </div> <!-- row -->
                     </div> <!-- card body -->
@@ -181,13 +181,15 @@
                 </br><h6>LOG (UTC):</h6>
                 <div class="row">
                     <div class="col-md-12">
-                        <ul style="font-size-adjust: 0.5">
-                            {% for le in s.log %}
-                                <li>
-                                    <b>{{ le.timestamp|date:"M d, Y P" }}</b>{{ le.msg }}
-                                </li>
-                            {% endfor %}
-                        </ul>
+                        <p style="font-size: 12px">
+                        {% for le in s.log %}
+                            {# format: Jul 01, 2014 4:42 p.m. #}
+                            <b>{{ le.timestamp|date:"Y/m/d H:i" }} {{ le.username }}:</b>
+                            &nbsp;{{ le.msg }}</br>
+                            {# format: Tue, 1 Jul 2014 16:42:33 -0400 #}
+                            {#<li><b>{{ le.timestamp|date:"r" }}</b> {{ le.msg }}</li>#}
+                        {% endfor %}
+                        </p>
                     </div>
                 </div> <!-- row -->
                 
