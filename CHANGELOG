@@ -1,3 +1,6 @@
+v2.1.1 2023-03-22 JP
+  - Remove API login requirement, contact names but no phone or emails are returned
+
 v2.1.0 2022-12-26 JP
   - Ordered Cancel button left, Save button right
   - Added LogEntry fields that reference host, staff, and event for expanded logging

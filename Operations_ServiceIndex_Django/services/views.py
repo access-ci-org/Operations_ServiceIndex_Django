@@ -799,7 +799,7 @@ def make_pdf(request):
     context = {'services':services}
     return do_pdf('services/services_for_pdf.html', context)
 
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def api_hosts(request):
     objects = Host.objects.all()
     serializer = Host_Serializer(objects, many=True)
