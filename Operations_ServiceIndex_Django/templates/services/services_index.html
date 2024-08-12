@@ -85,7 +85,9 @@
                                 <strong> Service checked by Nagios: </strong>
                                     {{ s.service.nagios | yesno }}<br />
                                 <strong>Service last verified: </strong>
-                                    {{ s.service.service_last_verified|date:"Y/m/d" }}
+                                    {{ s.service.service_last_verified|date:"Y/m/d" }}<br />
+                                <strong>Service Tags: </strong> <!-- service tags -->
+                                    {{ s.service.service_tags }}
                             </div>
                         </div> <!-- row -->
                     </div> <!-- card body -->
@@ -151,7 +153,9 @@
                                 <strong>Checked by Nagios: </strong>
                                     {{h.nagios|yesno }} </br>
                                 <strong>Syslog RELP: </strong>
-                                    {{h.syslog_relp_10515|yesno}}
+                                    {{h.syslog_relp_10515|yesno}}<br />
+                                <strong>Host Tags: </strong> <!-- host tags -->
+                                    {{h.host_tags}}
                             </div>
                         </div> <!-- row -->
                     </div> <!-- card-body -->

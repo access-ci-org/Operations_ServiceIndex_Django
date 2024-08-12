@@ -78,6 +78,7 @@ class Service(models.Model):
     ha = models.BooleanField()
     otp = models.BooleanField()
     nagios  = models.BooleanField()
+    service_tags = models.CharField(max_length=256, null=True, blank=True) # service_tags
     deprecated = models.BooleanField(default=False)
     # TODO  need 'last_updated' field
 
@@ -117,6 +118,7 @@ class Host(models.Model):
     poc_backup = models.ForeignKey(Staff, on_delete=models.CASCADE,
             related_name='poc_backup_instance_set')
     note = models.CharField(max_length=2048, blank=True)
+    host_tags = models.CharField(max_length=256, null=True, blank=True) # host_tags
     host_last_verified = models.DateField(null=True, blank=True)
 
     def __str__(self):
@@ -135,7 +137,7 @@ class Link(models.Model):
 
 class EditLock(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
-    username = models.CharField(max_length=16)
+    username = models.CharField(max_length=25)
     service = models.ForeignKey(Service, on_delete=models.CASCADE,)
 
     class Meta:
@@ -177,7 +179,7 @@ class HostEventLog(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE,)
     host = models.ForeignKey(Host, on_delete=models.CASCADE,)
     timestamp = models.DateTimeField(auto_now_add=True)
-    username = models.CharField(max_length=16)
+    username = models.CharField(max_length=25)
     note = models.CharField(max_length=2048, blank=True)
     status = models.CharField(max_length=32, 
     choices=HostEventStatus.STATUS_CHOICES)
@@ -187,7 +189,7 @@ class HostEventLog(models.Model):
  
 class LogEntry(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
-    username = models.CharField(max_length=16)  # the user making changes about one of the following
+    username = models.CharField(max_length=25)  # the user making changes about one of the following
     service = models.ForeignKey(Service, blank=True, null=True, on_delete=models.CASCADE,)
     host = models.ForeignKey(Host, blank=True, null=True, on_delete=models.CASCADE,)
     staff = models.ForeignKey(Staff, blank=True, null=True, on_delete=models.CASCADE,)
@@ -203,9 +205,9 @@ class ServiceForm(forms.ModelForm):
     class Meta:
         model = Service
         fields = ('name', 'description', 'hostname', 'failover_process',
-                'failover_last_tested', 'service_last_verified', 'dependencies', 'lb', 'ha', 'otp','nagios')
+                'failover_last_tested', 'service_last_verified', 'dependencies', 'lb', 'ha', 'otp','nagios', 'service_tags')
         labels = {'lb': 'Load Balanced', 'ha': 'High Availability',
-                'otp': 'OTP Enabled', 'nagios':  'Service checked by Nagios'}
+                'otp': 'OTP Enabled', 'nagios':  'Service checked by Nagios', 'service_tags': 'Service Tags ({tag}, {tag})'}
         widgets = {
             'name': forms.TextInput(attrs={'class':'form-control'}),
             'description': forms.Textarea(attrs={'class':'form-control', 'rows':'3'}),
@@ -214,6 +216,7 @@ class ServiceForm(forms.ModelForm):
             'failover_last_tested': forms.DateInput(format='%m/%d/%Y', attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}),
             'service_last_verified': forms.DateInput(format='%m/%d/%Y', attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}),
             'dependencies': forms.Textarea(attrs={'class':'form-control', 'rows':'3'}),
+            'service_tags': forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
         }
 
 class MetricsForm(forms.Form):
@@ -334,6 +337,8 @@ class HostForm(forms.ModelForm):
             widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Phone'}))
     host_last_verified = forms.DateField(required=False, label = 'Host last verified',
             widget=forms.DateInput(attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}))
+    host_tags = forms.CharField(required=False,
+            widget=forms.Textarea(attrs={'class':'form-control', 'rows':'2'}))
     note = forms.CharField(required=False,
             widget=forms.Textarea(attrs={'class':'form-control', 'rows':'3'}))
     class Meta:
@@ -371,6 +376,8 @@ class ExportChoicesForm(forms.Form):
         widget=forms.CheckboxInput(attrs={'class':'first_row'}))
     nagios_service = forms.BooleanField(label='Service checked by Nagios', required=False,
         widget=forms.CheckboxInput(attrs={'class':'first_row'}))
+    service_tags = forms.BooleanField(label='Service Tags', required=False,
+        widget=forms.CheckboxInput(attrs={'class':'first_row'}))
 
     location = forms.BooleanField(required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
@@ -399,6 +406,8 @@ class ExportChoicesForm(forms.Form):
     syslog_standard_10514 = forms.BooleanField(label='Default Syslog to 10514', required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
     syslog_relp_10515 = forms.BooleanField(label='RELP Syslog to 10515', required=False,
+        widget=forms.CheckboxInput(attrs={'class':'second_row'}))
+    host_tags = forms.BooleanField(label='Host Tags', required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
 
 class StaffForm(forms.ModelForm):

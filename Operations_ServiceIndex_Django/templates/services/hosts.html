@@ -25,6 +25,7 @@
         <th>NAGIOS CHECKED</th>
         <th>SYSLOG STANDARD</th>
         <th>SYSLOG RELP</th>
+        <th>HOST TAGS</th>
     </tr>
     </thead>
     <tbody>
@@ -46,15 +47,18 @@
 
                 </td>
                 <td>{{ host.label }}</td>
-                <td> {{host.qualys| yesno }}</td>
-                <td> {{host.nagios| yesno }}</td>
-                <td> {{host.syslog_standard_10514| yesno }}</td>
-                <td> {{host.syslog_relp_10515| yesno }}</td>
+                <td>{{ host.qualys| yesno }}</td>
+                <td>{{ host.nagios| yesno }}</td>
+                <td>{{ host.syslog_standard_10514| yesno }}</td>
+                <td>{{ host.syslog_relp_10515| yesno }}</td>
+                <td>{{ host.host_tags }}</td> <!-- host tags -->
             </tr>
         {% endif %}
     {% endfor %}
     </tbody>
 </table>
+
+{{ host.host_tags }}
 
 
 {% endblock %}

@@ -134,3 +134,5 @@ provision/web/Operations_Registry_Django.conf
 operations-app.access-ci.org.key
 operations-app.access-ci.org.pub
 **/.DS_Store
+{{ app_home }}/
+.idea/

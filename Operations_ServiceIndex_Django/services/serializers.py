@@ -14,12 +14,13 @@ class Host_Serializer(serializers.ModelSerializer):
     sys_admin = serializers.SerializerMethodField()
     poc_primary = serializers.SerializerMethodField()
     poc_backup = serializers.SerializerMethodField()
+    host_tags = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Host
         fields = ('service', 'location', 'hostname', 'ip_address',
             'qualys', 'nagios', 'syslog_standard_10514', 'syslog_relp_10515',
             'label', 'availability', 'support',
-            'sys_admin', 'poc_primary', 'poc_backup', 'host_last_verified')
+            'sys_admin', 'poc_primary', 'poc_backup', 'host_last_verified', 'host_tags')
         
     def get_sys_admin(self, Host):
         return '{}, {}'.format(Host.sys_admin.last_name, Host.sys_admin.name)
@@ -27,3 +28,5 @@ class Host_Serializer(serializers.ModelSerializer):
         return '{}, {}'.format(Host.poc_primary.last_name, Host.poc_primary.name)
     def get_poc_backup(self, Host):
         return '{}, {}'.format(Host.poc_backup.last_name, Host.poc_backup.name)
+    def get_host_tags(self, Host):
+        return '{}'.format(Host.host_tags)
