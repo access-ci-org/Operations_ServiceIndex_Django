@@ -305,7 +305,7 @@ def export(request):
                     if field == 'service_hostname':
                         service['fields'].append(getattr(s, 'hostname'))
                     elif field == 'nagios_service':
-                        service['fields'].append(getattr( s,'nagios'))
+                        service['fields'].append(getattr(s,'nagios'))
                     else:
                         service['fields'].append(getattr(s, field))
                 if host_fields:
