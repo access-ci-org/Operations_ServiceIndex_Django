@@ -1,5 +1,5 @@
-v2.1.2 2024-08 jelambe
-  - Adding 'service_tags' and 'host_tags' to models, forms, and a few templates to enter and view  user-added tags to both categories
+v2.2.0 2024-08 jelambe
+  - Adding 'service_tags' and 'host_tags' to models, forms, and a few templates to enter and view user-added tags to both categories
 
 v2.1.1 2023-03-22 JP
   - Remove API login requirement, contact names but no phone or emails are returned

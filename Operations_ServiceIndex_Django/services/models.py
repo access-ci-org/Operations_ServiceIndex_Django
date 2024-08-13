@@ -216,7 +216,7 @@ class ServiceForm(forms.ModelForm):
             'failover_last_tested': forms.DateInput(format='%m/%d/%Y', attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}),
             'service_last_verified': forms.DateInput(format='%m/%d/%Y', attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}),
             'dependencies': forms.Textarea(attrs={'class':'form-control', 'rows':'3'}),
-            'service_tags': forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
+            'service_tags': forms.Textarea(attrs={'class': 'form-control', 'rows': '2'}),
         }
 
 class MetricsForm(forms.Form):

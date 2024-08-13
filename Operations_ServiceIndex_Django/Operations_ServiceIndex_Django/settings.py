@@ -65,18 +65,18 @@ INSTALLED_APPS = [
 
 SITE_ID = 1
 
-SOCIALACCOUNT_PROVIDERS = {
-   'cilogon': {
-       # For each OAuth based provider, either add a ``SocialApp``
-       # (``socialaccount`` app) containing the required client
-       # credentials, or lis"SOCIALt them here:
-       'APP': {
-           'client_id': CONF['SOCIAL_CLIENT_ID'],
-           'secret': CONF['SOCIAL_SECRET'],
-           'key': ''
-       }
-   }
-}
+# SOCIALACCOUNT_PROVIDERS = {
+#    'cilogon': {
+#        # For each OAuth based provider, either add a ``SocialApp``
+#        # (``socialaccount`` app) containing the required client
+#        # credentials, or lis"SOCIALt them here:
+#        'APP': {
+#            'client_id': CONF['SOCIAL_CLIENT_ID'],
+#            'secret': CONF['SOCIAL_SECRET'],
+#            'key': ''
+#        }
+#    }
+# }
 
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/cilogon/login/'
