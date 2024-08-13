@@ -69,7 +69,7 @@ SITE_ID = 1
 #    'cilogon': {
 #        # For each OAuth based provider, either add a ``SocialApp``
 #        # (``socialaccount`` app) containing the required client
-#        # credentials, or lis"SOCIALt them here:
+#        # credentials, or list them here:
 #        'APP': {
 #            'client_id': CONF['SOCIAL_CLIENT_ID'],
 #            'secret': CONF['SOCIAL_SECRET'],
