@@ -1,5 +1,5 @@
 # myapp/context_processors.py
-from Operations_ServiceIndex_Django.services.models import Tags_Loc
+from .models import Tags_Loc
 
 def tags_loc_processor(request):
     tags_loc = Tags_Loc.objects.first()

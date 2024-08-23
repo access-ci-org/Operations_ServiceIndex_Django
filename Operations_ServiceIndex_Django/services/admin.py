@@ -86,3 +86,8 @@ class HostEventLogAdmin(admin.ModelAdmin):
     ordering = ['timestamp']
     search_fields = ['event', 'host']
 admin.site.register(HostEventLog, HostEventLogAdmin)
+
+class TagsLocAdmin(admin.ModelAdmin):
+    list_display = ('loc_url',)  # tag loc list
+    search_fields = ('loc_url',)
+admin.site.register(Tags_Loc, TagsLocAdmin)

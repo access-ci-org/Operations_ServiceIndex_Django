@@ -86,7 +86,7 @@
                                     {{ s.service.nagios | yesno }}<br />
                                 <strong>Service last verified: </strong>
                                     {{ s.service.service_last_verified|date:"Y/m/d" }}<br />
-                                <strong><a href="https://docs.google.com/spreadsheets/d/15IsiZvX282mXdP9SvtUP5CVWRkcQT00RFp577-hY6HY/edit?gid=0#gid=0">Service Tags</a>:</strong> <!-- service tags -->
+                                <strong><a href="{{ TAGS_LOC }}" target="_blank">Service Tags</a>:</strong> <!-- service tags -->
                                     {{ s.service.service_tags }}
                             </div>
                         </div> <!-- row -->
@@ -126,8 +126,8 @@
                             <div class="col-md-4">
                                 <strong>Location: </strong>
                                     {{ h.location }}<br />
-                                <strong>IP: </strong>
-                                    {{ h.ip_address }}<br />
+                                <strong>IP(s): </strong>
+                                    {{ h.ip_addresses }}<br />
                                 <strong>Avail:  </strong>
                                     {{ h.availability }}, {{ h.support }}<br />
                                 <strong>Scanned by Qualys: </strong>
@@ -154,7 +154,7 @@
                                     {{h.nagios|yesno }} </br>
                                 <strong>Syslog RELP: </strong>
                                     {{h.syslog_relp_10515|yesno}}<br />
-                                <strong><a href="https://docs.google.com/spreadsheets/d/15IsiZvX282mXdP9SvtUP5CVWRkcQT00RFp577-hY6HY/edit?gid=0#gid=0">Host Tags</a>:</strong> <!-- host tags -->
+                                <strong><a href="{{ TAGS_LOC }}">Host Tags</a>:</strong> <!-- host tags -->
                                     {{h.host_tags}}
                             </div>
                         </div> <!-- row -->

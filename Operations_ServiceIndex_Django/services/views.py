@@ -18,6 +18,9 @@ from services.models import *
 from services.serializers import *
 import services.signals
 
+from .models import Tags_Loc
+from .serializers import TagsLocSerializer
+
 import collections
 import json
 import logging
@@ -279,9 +282,9 @@ def export(request):
     """
     possible_service_fields = ['description', 'dependencies', 'service_hostname',
             'failover_process', 'failover_last_tested', 'service_last_verified', 'lb', 'ha', 'otp','nagios_service', 'service_tags']
-    possible_host_fields = ['location', 'hostname', 'ip_address',
+    possible_host_fields = ['location', 'hostname', 'ip_addresses',
             'availability', 'support', 'sys_admin', 'host_last_verified',
-            'poc_primary', 'poc_backup', 'note','qualys', 'nagios', 'syslog_standard_10514', 'syslog_relp_10515', 'host_tags']
+            'poc_primary', 'poc_backup', 'qualys', 'nagios', 'syslog_standard_10514', 'syslog_relp_10515', 'host_tags']
     if request.POST:
         form = ExportChoicesForm(request.POST)
         if form.is_valid():
@@ -305,7 +308,7 @@ def export(request):
                     if field == 'service_hostname':
                         service['fields'].append(getattr(s, 'hostname'))
                     elif field == 'nagios_service':
-                        service['fields'].append(getattr(s,'nagios'))
+                        service['fields'].append(getattr(s, 'nagios'))
                     else:
                         service['fields'].append(getattr(s, field))
                 if host_fields:
@@ -351,9 +354,9 @@ def custom(request):
 
     possible_service_fields = ['description', 'dependencies', 'service_hostname',
             'failover_process', 'failover_last_tested', 'service_last_verified', 'lb', 'ha', 'otp', 'service_tags']
-    possible_host_fields  = ['location', 'hostname', 'ip_address',
+    possible_host_fields  = ['location', 'hostname', 'ip_addresses',
             'availability', 'support', 'sys_admin', 'host_last_verified',
-            'poc_primary', 'poc_backup', 'note', 'host_tags']
+            'poc_primary', 'poc_backup', 'host_tags']
     if request.POST:
         form = ExportChoicesForm(request.POST)
         if form.is_valid():
@@ -415,6 +418,13 @@ def custom(request):
             'host_fields':host_fields}
     return render(request, 'services/export_choices.html', context)
 
+def Tags_loc(request):
+    tags_loc = Tags_Loc.objects.first()
+    context = {
+        'TAGS_LOC': tags_loc.loc_url,
+    }
+    return render(request, 'services/hosts.html', context)
+
 @login_required
 @user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def hosts(request, order_field='hostname'):
@@ -438,7 +448,7 @@ def hosts(request, order_field='hostname'):
                 services = []
                 services.append({'name':h.service.name,'deprecated':h.service.deprecated })
                 hosts[h.hostname] = {'hostname': h.hostname,
-                    'ip': h.ip_address,
+                    'ip': h.ip_addresses,
                     'site': h.location.site,
                     'label': h.label,
                     'service': services,
@@ -459,7 +469,7 @@ def hosts(request, order_field='hostname'):
                 services = []
                 hostlabel = h.label
             services.append({'name':h.service.name,'deprecated':h.service.deprecated})
-            hosts[h.hostname] = {'hostname': h.hostname, 'ip': h.ip_address,
+            hosts[h.hostname] = {'hostname': h.hostname, 'ip': h.ip_addresses,
                 'site': h.location.site,
                 'label': hostlabel, 'service': services,
                 'deprecated': h.service.deprecated, 'qualys': h.qualys, 'nagios': h.nagios,
@@ -476,7 +486,7 @@ def hosts_by_service(request):
     services = []
     index = -1
     for i in Host.objects.order_by('service__name'):
-        h = {'host':i.hostname, 'ip':i.ip_address, 'site': i.location.site}
+        h = {'host':i.hostname, 'ip':i.ip_addresses, 'site': i.location.site}
         if i.service.name == s:
             services[index]['hosts'].append(h)
         else:
@@ -738,7 +748,7 @@ def event(request, event_id):
     for hes in HostEventStatus.objects.filter(event=event).order_by(
             'host__hostname'):
         hosts.append({'hes_id':hes.id, 
-                'hostname':hes.host.hostname,'ip':hes.host.ip_address,
+                'hostname':hes.host.hostname,'ip':hes.host.ip_addresses,
                 'logs':HostEventLog.objects.filter(event=hes.event,
                 host=hes.host).order_by('timestamp'),
                 'status':hes.status,'col':cols[hes.status],

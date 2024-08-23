@@ -5,6 +5,11 @@ class Service_Serializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = '__all__'
+
+class TagsLocSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tags_Loc
+        fields = ['id', 'loc_url']
         
 class Host_Serializer(serializers.ModelSerializer):
     service = Service_Serializer(read_only=True)

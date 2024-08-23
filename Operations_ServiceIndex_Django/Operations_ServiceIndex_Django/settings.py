@@ -69,7 +69,7 @@ SITE_ID = 1
 #    'cilogon': {
 #        # For each OAuth based provider, either add a ``SocialApp``
 #        # (``socialaccount`` app) containing the required client
-#        # credentials, or list them here:
+#        # credentials, or lis  t them here:
 #        'APP': {
 #            'client_id': CONF['SOCIAL_CLIENT_ID'],
 #            'secret': CONF['SOCIAL_SECRET'],
@@ -134,7 +134,9 @@ TEMPLATES = [
             'context_processors': [
                 'django.contrib.messages.context_processors.messages',
                 'django.contrib.auth.context_processors.auth',
-                'django.template.context_processors.request',
+                'django.template'
+                '.context_processors.request',
+                'services.context_processors.tags_loc_processor',
 #                'django.template.context_processors.debug',
             ],
         },

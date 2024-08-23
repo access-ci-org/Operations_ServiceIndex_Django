@@ -1,3 +1,4 @@
+
 {% extends "services/base_nav_full.html" %}
 
 {% block title %}Hosts{% endblock %}
@@ -15,7 +16,7 @@
         {% if order_field == 'location__site' %}
         <span class="glyphicon glyphicon-chevron-down"></span>
         {% endif %}</a></th>
-        <th>IP ADDRESS</th>
+        <th>IP ADDRESSES</th>
         <th><a href="{% url 'services:hosts' 'service__name' %}">SERVICE
         {% if order_field == 'service__name' %}
         <span class="glyphicon glyphicon-chevron-down"></span>
@@ -25,7 +26,7 @@
         <th>NAGIOS CHECKED</th>
         <th>SYSLOG STANDARD</th>
         <th>SYSLOG RELP</th>
-        <th><a href="https://docs.google.com/spreadsheets/d/15IsiZvX282mXdP9SvtUP5CVWRkcQT00RFp577-hY6HY/edit?gid=0#gid=0">HOST TAGS</a></th>
+        <th><a href="{{ TAGS_LOC }}" target="_blank">HOST TAGS</a></th>
     </tr>
     </thead>
     <tbody>
