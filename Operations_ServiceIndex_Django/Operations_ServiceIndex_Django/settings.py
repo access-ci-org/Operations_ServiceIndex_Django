@@ -136,7 +136,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.template'
                 '.context_processors.request',
-                'services.context_processors.tags_loc_processor',
+                'services.context_processors.misc_urls_processor',
 #                'django.template.context_processors.debug',
             ],
         },

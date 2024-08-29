@@ -18,8 +18,7 @@ from services.models import *
 from services.serializers import *
 import services.signals
 
-from .models import Tags_Loc
-from .serializers import TagsLocSerializer
+from .models import Misc_urls
 
 import collections
 import json
@@ -418,10 +417,10 @@ def custom(request):
             'host_fields':host_fields}
     return render(request, 'services/export_choices.html', context)
 
-def Tags_loc(request):
-    tags_loc = Tags_Loc.objects.first()
+def Misc_urls(request):
+    url_loc = Misc_urls.objects.first()
     context = {
-        'TAGS_LOC': tags_loc.loc_url,
+        'URL_LOC': Misc_urls.urls,
     }
     return render(request, 'services/hosts.html', context)
 

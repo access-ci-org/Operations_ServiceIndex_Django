@@ -129,14 +129,15 @@ class Host(models.Model):
     class Meta:
         db_table = '"serviceindex"."host"'
 
-class Tags_Loc(models.Model):
-    loc_url = models.URLField(max_length=512)
+class Misc_urls(models.Model):
+    name = models.CharField(max_length=50)
+    urls = models.URLField(max_length=512)
 
     class Meta:
-        db_table = '"serviceindex"."tags_loc"'
+        db_table = '"serviceindex"."misc_urls"'
 
     def __str__(self):
-        return self.loc_url
+        return self.name
 
 class Link(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE,)
@@ -222,7 +223,7 @@ class ServiceForm(forms.ModelForm):
             'ha': 'High Availability',
             'otp': 'OTP Enabled',
             'nagios': 'Service checked by Nagios',
-            'service_tags': 'Service Tags {tag}, {tag}'  # Placeholder for the dynamic content
+            'service_tags': 'Service Tags'  # Placeholder for the dynamic content
         }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -238,17 +239,16 @@ class ServiceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ServiceForm, self).__init__(*args, **kwargs)
 
-        tags_loc = Tags_Loc.objects.first()
-        if tags_loc:
-            link = f'<a href="{tags_loc.loc_url}" target="_blank">Service Tags</a>'
-            self.fields['service_tags'].label = mark_safe(
-                f'{link} {{tag}}, {{tag}}'
-            )
+        # Fetch the Misc_urls instance where name is the desired value
+        url_loc = Misc_urls.objects.filter(name='hs_tags').first()
+
+        if url_loc:
+            # Use the `urls` field from the fetched `Misc_urls` instance
+            link = f'<a href="{url_loc.urls}" target="_blank">Service Tags</a>'
+            self.fields['service_tags'].label = mark_safe(link)
         else:
-            # Handle the case where there are no Tags_Loc entries
-            self.fields['service_tags'].label = mark_safe(
-                'Service Tags {tag}, {tag}'
-            )
+            # Handle the case where there is no matching Misc_urls entry
+            self.fields['service_tags'].label = mark_safe('Service Tags')
 
 class MetricsForm(forms.Form):
     start_date = forms.DateField(required=False,

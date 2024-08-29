@@ -1,9 +1,10 @@
-v2.2.0 2024-08-23 jlambertson
+v2.2.0 2024-08-28 jlambertson
   - Added 'service_tags' and 'host_tags' to models, forms, and a few templates to enter and view user-added tags to both categories
   - Removed Notes from the export API, otherwise viewable while logged in
   - Increased character limit for host.ip_addresses and edited single grammar to include plural options
   - increased username character limit from 16 to 25
-  - added a table to include url for recommended service/tags list
+  - added a table, misc_urls, to models to include urls for various possible links being added to the site; as well as a name column by which the specific context urls can be queried
+
 
 v2.1.1 2023-03-22 JP
   - Remove API login requirement, contact names but no phone or emails are returned
