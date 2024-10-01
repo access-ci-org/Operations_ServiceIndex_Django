@@ -1,5 +1,4 @@
 from django.urls import include, path, re_path
-
 from services import views
 
 app_name = 'services'

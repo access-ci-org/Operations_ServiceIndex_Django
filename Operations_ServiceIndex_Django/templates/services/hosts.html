@@ -1,3 +1,4 @@
+
 {% extends "services/base_nav_full.html" %}
 
 {% block title %}Hosts{% endblock %}
@@ -15,7 +16,7 @@
         {% if order_field == 'location__site' %}
         <span class="glyphicon glyphicon-chevron-down"></span>
         {% endif %}</a></th>
-        <th>IP ADDRESS</th>
+        <th>IP ADDRESSES</th>
         <th><a href="{% url 'services:hosts' 'service__name' %}">SERVICE
         {% if order_field == 'service__name' %}
         <span class="glyphicon glyphicon-chevron-down"></span>
@@ -25,6 +26,7 @@
         <th>NAGIOS CHECKED</th>
         <th>SYSLOG STANDARD</th>
         <th>SYSLOG RELP</th>
+        <th><a href="{{ MISC_URLS.hs_tags }}" target="_blank">HOST TAGS</a></th>
     </tr>
     </thead>
     <tbody>
@@ -46,15 +48,18 @@
 
                 </td>
                 <td>{{ host.label }}</td>
-                <td> {{host.qualys| yesno }}</td>
-                <td> {{host.nagios| yesno }}</td>
-                <td> {{host.syslog_standard_10514| yesno }}</td>
-                <td> {{host.syslog_relp_10515| yesno }}</td>
+                <td>{{ host.qualys| yesno }}</td>
+                <td>{{ host.nagios| yesno }}</td>
+                <td>{{ host.syslog_standard_10514| yesno }}</td>
+                <td>{{ host.syslog_relp_10515| yesno }}</td>
+                <td>{{ host.host_tags }}</td> <!-- host tags -->
             </tr>
         {% endif %}
     {% endfor %}
     </tbody>
 </table>
+
+{{ host.host_tags }}
 
 
 {% endblock %}

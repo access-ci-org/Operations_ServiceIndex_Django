@@ -10,7 +10,7 @@
     </tr>
     {% for p in people %}
             <tr>
-                <td>{{p.last_name}}, {{ p.name }}</br>
+                <td>{{p.last_name}}, {{ p.name }}<br /><br />
                 &nbsp;&nbsp;&nbsp;<a href="{% url 'services:edit_staff' p.id %}"
                 class="btn btn-outline-success" role="button">
                 <span class="glyphicon glyphicon-pencil"></span>

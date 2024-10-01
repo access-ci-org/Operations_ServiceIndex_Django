@@ -1,6 +1,8 @@
 from django.db import models
 from django import forms
 
+from django.utils.safestring import mark_safe
+
 class Staff(models.Model):
     """
     Foreign key for sys_admin, poc_primary, and poc_backup in Instance.
@@ -78,6 +80,7 @@ class Service(models.Model):
     ha = models.BooleanField()
     otp = models.BooleanField()
     nagios  = models.BooleanField()
+    service_tags = models.CharField(max_length=256, null=True, blank=True) # service_tags
     deprecated = models.BooleanField(default=False)
     # TODO  need 'last_updated' field
 
@@ -101,7 +104,7 @@ class Host(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     location = models.ForeignKey(Site, on_delete=models.CASCADE)
     hostname = models.CharField(max_length=256, blank=True) # multiple?
-    ip_address = models.CharField(max_length=128, blank=True)
+    ip_addresses = models.CharField(max_length=256, blank=True)
     qualys = models.BooleanField(blank=False)
     nagios = models.BooleanField(blank=False)
     syslog_standard_10514 = models.BooleanField(blank=False)
@@ -117,6 +120,7 @@ class Host(models.Model):
     poc_backup = models.ForeignKey(Staff, on_delete=models.CASCADE,
             related_name='poc_backup_instance_set')
     note = models.CharField(max_length=2048, blank=True)
+    host_tags = models.CharField(max_length=256, null=True, blank=True) # host_tags
     host_last_verified = models.DateField(null=True, blank=True)
 
     def __str__(self):
@@ -124,6 +128,16 @@ class Host(models.Model):
 
     class Meta:
         db_table = '"serviceindex"."host"'
+
+class Misc_urls(models.Model):
+    name = models.CharField(max_length=50)
+    urls = models.URLField(max_length=512)
+
+    class Meta:
+        db_table = '"serviceindex"."misc_urls"'
+
+    def __str__(self):
+        return self.name
 
 class Link(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE,)
@@ -135,7 +149,7 @@ class Link(models.Model):
 
 class EditLock(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
-    username = models.CharField(max_length=16)
+    username = models.CharField(max_length=25)
     service = models.ForeignKey(Service, on_delete=models.CASCADE,)
 
     class Meta:
@@ -177,7 +191,7 @@ class HostEventLog(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE,)
     host = models.ForeignKey(Host, on_delete=models.CASCADE,)
     timestamp = models.DateTimeField(auto_now_add=True)
-    username = models.CharField(max_length=16)
+    username = models.CharField(max_length=25)
     note = models.CharField(max_length=2048, blank=True)
     status = models.CharField(max_length=32, 
     choices=HostEventStatus.STATUS_CHOICES)
@@ -187,7 +201,7 @@ class HostEventLog(models.Model):
  
 class LogEntry(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
-    username = models.CharField(max_length=16)  # the user making changes about one of the following
+    username = models.CharField(max_length=25)  # the user making changes about one of the following
     service = models.ForeignKey(Service, blank=True, null=True, on_delete=models.CASCADE,)
     host = models.ForeignKey(Host, blank=True, null=True, on_delete=models.CASCADE,)
     staff = models.ForeignKey(Staff, blank=True, null=True, on_delete=models.CASCADE,)
@@ -203,18 +217,38 @@ class ServiceForm(forms.ModelForm):
     class Meta:
         model = Service
         fields = ('name', 'description', 'hostname', 'failover_process',
-                'failover_last_tested', 'service_last_verified', 'dependencies', 'lb', 'ha', 'otp','nagios')
-        labels = {'lb': 'Load Balanced', 'ha': 'High Availability',
-                'otp': 'OTP Enabled', 'nagios':  'Service checked by Nagios'}
-        widgets = {
-            'name': forms.TextInput(attrs={'class':'form-control'}),
-            'description': forms.Textarea(attrs={'class':'form-control', 'rows':'3'}),
-            'hostname': forms.TextInput(attrs={'class':'form-control'}),
-            'failover_process': forms.Textarea(attrs={'class':'form-control', 'rows':'3'}),
-            'failover_last_tested': forms.DateInput(format='%m/%d/%Y', attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}),
-            'service_last_verified': forms.DateInput(format='%m/%d/%Y', attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}),
-            'dependencies': forms.Textarea(attrs={'class':'form-control', 'rows':'3'}),
+                'failover_last_tested', 'service_last_verified', 'dependencies', 'lb', 'ha', 'otp', 'nagios', 'service_tags')
+        labels = {
+            'lb': 'Load Balanced',
+            'ha': 'High Availability',
+            'otp': 'OTP Enabled',
+            'nagios': 'Service checked by Nagios',
+            'service_tags': 'Service Tags'  # Placeholder for the dynamic content
         }
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
+            'hostname': forms.TextInput(attrs={'class': 'form-control'}),
+            'failover_process': forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
+            'failover_last_tested': forms.DateInput(format='%m/%d/%Y', attrs={'class': 'form-control', 'placeholder': 'mm/dd/yyyy'}),
+            'service_last_verified': forms.DateInput(format='%m/%d/%Y', attrs={'class': 'form-control', 'placeholder': 'mm/dd/yyyy'}),
+            'dependencies': forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
+            'service_tags': forms.Textarea(attrs={'class': 'form-control', 'rows': '2'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(ServiceForm, self).__init__(*args, **kwargs)
+
+        # Fetch the Misc_urls instance where name is the desired value
+        url_loc = Misc_urls.objects.filter(name='hs_tags').first()
+
+        if url_loc:
+            # Use the `urls` field from the fetched `Misc_urls` instance
+            link = f'<a href="{url_loc.urls}" target="_blank">Service Tags</a>'
+            self.fields['service_tags'].label = mark_safe(link)
+        else:
+            # Handle the case where there is no matching Misc_urls entry
+            self.fields['service_tags'].label = mark_safe('Service Tags')
 
 class MetricsForm(forms.Form):
     start_date = forms.DateField(required=False,
@@ -288,7 +322,7 @@ class HostForm(forms.ModelForm):
             widget=forms.TextInput(attrs={'class':'form-control'}))
     hostname = forms.CharField(required=False,
             widget=forms.TextInput(attrs={'class':'form-control'}))
-    ip_address = forms.CharField(required=False,
+    ip_addresses = forms.CharField(required=False,
             widget=forms.TextInput(attrs={'class':'form-control'}))
     qualys = forms.BooleanField(required=False, label='Qualys',
             widget=forms.CheckboxInput(attrs={'class':'first_row'}))
@@ -334,6 +368,8 @@ class HostForm(forms.ModelForm):
             widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Phone'}))
     host_last_verified = forms.DateField(required=False, label = 'Host last verified',
             widget=forms.DateInput(attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}))
+    host_tags = forms.CharField(required=False,
+            widget=forms.Textarea(attrs={'class':'form-control', 'rows':'2'}))
     note = forms.CharField(required=False,
             widget=forms.Textarea(attrs={'class':'form-control', 'rows':'3'}))
     class Meta:
@@ -371,12 +407,14 @@ class ExportChoicesForm(forms.Form):
         widget=forms.CheckboxInput(attrs={'class':'first_row'}))
     nagios_service = forms.BooleanField(label='Service checked by Nagios', required=False,
         widget=forms.CheckboxInput(attrs={'class':'first_row'}))
+    service_tags = forms.BooleanField(label='Service Tags', required=False,
+        widget=forms.CheckboxInput(attrs={'class':'first_row'}))
 
     location = forms.BooleanField(required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
     hostname = forms.BooleanField(required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
-    ip_address = forms.BooleanField(required=False,
+    ip_addresses = forms.BooleanField(label='Ip addresses', required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
     availability = forms.BooleanField(required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
@@ -388,8 +426,8 @@ class ExportChoicesForm(forms.Form):
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
     poc_backup = forms.BooleanField(required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
-    note = forms.BooleanField(required=False,
-        widget=forms.CheckboxInput(attrs={'class':'second_row'}))
+    # note = forms.BooleanField(required=False,
+    #     widget=forms.CheckboxInput(attrs={'class':'second_row'}))
     host_last_verified = forms.BooleanField(required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
     qualys = forms.BooleanField(label='Scanned by Qualys', required=False,
@@ -399,6 +437,8 @@ class ExportChoicesForm(forms.Form):
     syslog_standard_10514 = forms.BooleanField(label='Default Syslog to 10514', required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
     syslog_relp_10515 = forms.BooleanField(label='RELP Syslog to 10515', required=False,
+        widget=forms.CheckboxInput(attrs={'class':'second_row'}))
+    host_tags = forms.BooleanField(label='Host Tags', required=False,
         widget=forms.CheckboxInput(attrs={'class':'second_row'}))
 
 class StaffForm(forms.ModelForm):

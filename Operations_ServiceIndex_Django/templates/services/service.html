@@ -186,12 +186,12 @@
             {{ hform.hostname }}
         </div>
         <div class="col-md-2" style="text-align:right; vertical-align:middle">
-            <label for="{{ ifhrm.ip_address.id_for_label }}" class="col-form-label">
-                IP Address:
+            <label for="{{ ifhrm.ip_addresses.id_for_label }}" class="col-form-label">
+                IP Addresses:
             </label>
         </div>
         <div class="col-md-3">
-            {{ hform.ip_address }}
+            {{ hform.ip_addresses }}
         </div>
     </div>
     <div class="row mb-2">
@@ -303,6 +303,18 @@
             {{ hform.poc_backup_phone }}
         </div>
     </div>
+
+    <div class="row mb-2">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ hform.host_tags.id_for_label }}" class="col-form-label">
+                <a href = "{{ MISC_URLS.hs_tags }}" target="_blank">Host Tags</a>:
+            </label>
+        </div>
+        <div class="col-md-6">
+            {{ hform.host_tags }}
+        </div>
+    </div>
+
     <div class="row mb-2">
         <div class="col-md-2" style="text-align:right; vertical-align:middle">
             <label for="{{ hform.note.id_for_label }}" class="col-form-label">

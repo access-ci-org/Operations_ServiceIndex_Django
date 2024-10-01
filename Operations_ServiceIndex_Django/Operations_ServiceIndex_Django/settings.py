@@ -60,22 +60,23 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.cilogon',
     'bootstrap5',
+    # 'django_extensions',
 ]
 
 SITE_ID = 1
 
-#SOCIALACCOUNT_PROVIDERS = {
+# SOCIALACCOUNT_PROVIDERS = {
 #    'cilogon': {
 #        # For each OAuth based provider, either add a ``SocialApp``
 #        # (``socialaccount`` app) containing the required client
-#        # credentials, or list them here:
+#        # credentials, or lis  t them here:
 #        'APP': {
 #            'client_id': CONF['SOCIAL_CLIENT_ID'],
 #            'secret': CONF['SOCIAL_SECRET'],
 #            'key': ''
 #        }
 #    }
-#}
+# }
 
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/cilogon/login/'
@@ -92,6 +93,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'allauth.account.middleware.AccountMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -132,7 +134,9 @@ TEMPLATES = [
             'context_processors': [
                 'django.contrib.messages.context_processors.messages',
                 'django.contrib.auth.context_processors.auth',
-                'django.template.context_processors.request',
+                'django.template'
+                '.context_processors.request',
+                'services.context_processors.misc_urls_processor',
 #                'django.template.context_processors.debug',
             ],
         },
