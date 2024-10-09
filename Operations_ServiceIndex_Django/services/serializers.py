@@ -17,7 +17,7 @@ class Host_Serializer(serializers.ModelSerializer):
     host_tags = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Host
-        fields = ('service', 'location', 'hostname', 'ip_address',
+        fields = ('service', 'location', 'hostname', 'ip_addresses',
             'qualys', 'nagios', 'syslog_standard_10514', 'syslog_relp_10515',
             'label', 'availability', 'support',
             'sys_admin', 'poc_primary', 'poc_backup', 'host_last_verified', 'host_tags')

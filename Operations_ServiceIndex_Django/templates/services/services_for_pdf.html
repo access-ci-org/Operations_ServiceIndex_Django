@@ -60,7 +60,7 @@
     {% for i in s.instances %}
     <tr>
     <td style="text-align:right;" class="short"><b>{{ i.type }}:</b></td>
-    <td class="medium outlined">{{ i.location }}<br />{{ i.hostname }}<br />{{ i.ip_address }}</td>
+    <td class="medium outlined">{{ i.location }}<br />{{ i.hostname }}<br />{{ i.ip_addresses }}</td>
     <td class="short outlined">{{ i.availability }}<br />{{ i.support }}</td>
     {# <td><a href="mailto:{{ i.sys_admin.email }}">{{ i.sys_admin.name }}</a></td> #}
     <td class="medium outlined"><span>Sys Admin:</span><br />{{ i.sys_admin.last_name }}, {{ i.sys_admin.name }}<br />{{ i.sys_admin.email }}</td>
