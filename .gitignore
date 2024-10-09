@@ -136,3 +136,4 @@ operations-app.access-ci.org.pub
 **/.DS_Store
 {{ app_home }}/
 .idea/
+Pipfile*
