@@ -1,5 +1,5 @@
 v2.2.1 2024-10-09 jlambertson
-  - updated the Host model to conform to the multiple 'up_addresses' addition from v2.2.0
+  - updated the Host model to conform to the multiple 'ip_addresses' addition from v2.2.0
 
 v2.2.0 2024-08-29 jlambertson
   - Added 'service_tags' and 'host_tags' to models, forms, and a few templates to enter and view user-added tags to both categories
