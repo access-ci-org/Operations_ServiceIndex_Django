@@ -6,14 +6,11 @@ name = "pypi"
 [dev-packages]
 
 [packages]
-django = "==4.1.*"
-#django = "==5.*"
+django = "==5.0.*"
 #django-cors-headers = "*"
 django-allauth = "==0.51.*"
 #django-allauth = "*"
-#django-bootstrap-v5 = "==1.0.*"
-django-bootstrap-v5 = "*"
-#django-bootstrap5 = "==24.*"
+django-bootstrap5 = "==24.*"
 psycopg2-binary = "*"
 #psycopg2 = "*"
 requests = "*"
@@ -24,5 +21,4 @@ gunicorn = "==20.1.*"
 #pyopenssl = "*"
 
 [requires]
-python_version = "3.10"
-#python_version = "3.12"
+python_version = "3.11"
