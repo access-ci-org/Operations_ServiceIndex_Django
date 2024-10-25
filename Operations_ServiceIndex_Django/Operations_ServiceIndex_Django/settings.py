@@ -60,8 +60,8 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.cilogon',
-    #'django_bootstrap5',
-    'bootstrap5',
+    'django_bootstrap5',
+    #'bootstrap5',
     # 'django_extensions',
 ]
 

@@ -1,4 +1,4 @@
-v2.2.0 2024-10-22 jlambertson
+v2.2.2 2024-10-25 jlambertson
   - upgraded Django to 5.0.*; Python to 3.11; migrated from django-bootstrap-v5 to django-bootstrap5 24.*
 
 v2.2.1 2024-10-09 jlambertson
