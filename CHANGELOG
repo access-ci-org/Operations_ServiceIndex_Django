@@ -1,3 +1,6 @@
+v2.2.2 2024-10-25 jlambertson
+  - upgraded Django to 5.0.*; migrated from django-bootstrap-v5 to django-bootstrap5 24.*
+
 v2.2.1 2024-10-09 jlambertson
   - updated the Host model to conform to the multiple 'ip_addresses' addition from v2.2.0
 
