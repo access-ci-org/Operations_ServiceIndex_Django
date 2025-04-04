@@ -20,11 +20,13 @@ from django.urls import include, path
 from django.views.generic import RedirectView
 from allauth.socialaccount.providers.oauth2.views import OAuth2LoginView
 from . import views
+from djangouseradmin import views
 
 urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('admin/', admin.site.urls),
     path('services/', include('services.urls', namespace="services")),
+    path('djangouseradmin/', include('djangouseradmin.urls', namespace="djangouseradmin")),
     path('favicon.ico', views.favicon),
     path('', RedirectView.as_view(url=django_settings.LOGIN_URL) )
 ]

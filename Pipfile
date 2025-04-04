@@ -7,19 +7,11 @@ name = "pypi"
 
 [packages]
 django = "==5.0.*"
-#django-cors-headers = "*"
 django-allauth = "==0.51.*"
-#django-allauth = "*"
 django-bootstrap5 = "==24.*"
 psycopg2-binary = "*"
-#psycopg2 = "*"
-requests = "*"
 djangorestframework = "*"
 gunicorn = "==20.1.*"
-#django-extensions = "*"
-#werkzeug = "*"
-#pyopenssl = "*"
 
 [requires]
 python_version = "3.10"
-
