@@ -138,3 +138,4 @@ operations-app.access-ci.org.pub
 .idea/
 Pipfile
 Pipfile.lock
+API_KEY

@@ -12,7 +12,7 @@ class Staff(models.Model):
     phone = models.CharField(max_length=64, blank=True)
     last_name = models.CharField(max_length=64)
     deleted = models.BooleanField(default=False)
-    
+
     def __unicode__(self):
         return self.name + ' (' + self.email + ')'
     def __str__(self):
@@ -66,7 +66,7 @@ class Availability(models.Model):
 
 class Service(models.Model):
     """
-    Main model for a service entry.  Each Service will have one or more 
+    Main model for a service entry.  Each Service will have one or more
     related Instances.  Also, each Service can have 0 or more related Links.
     """
     name = models.CharField(max_length=256, unique=True)
@@ -154,7 +154,7 @@ class EditLock(models.Model):
 
     class Meta:
         db_table = '"serviceindex"."editlock"'
-    
+
 
 class Event(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -182,7 +182,7 @@ class HostEventStatus(models.Model):
     host = models.ForeignKey(Host, on_delete=models.CASCADE,)
     status = models.CharField(max_length=32, choices=STATUS_CHOICES)
     #note = models.CharField(max_length=1024, blank=True)
-        
+
     class Meta:
         db_table = '"serviceindex"."hosteventstatus"'
 
@@ -193,12 +193,12 @@ class HostEventLog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     username = models.CharField(max_length=25)
     note = models.CharField(max_length=2048, blank=True)
-    status = models.CharField(max_length=32, 
+    status = models.CharField(max_length=32,
     choices=HostEventStatus.STATUS_CHOICES)
-   
+
     class Meta:
         db_table = '"serviceindex"."hosteventlog"'
- 
+
 class LogEntry(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     username = models.CharField(max_length=25)  # the user making changes about one of the following
@@ -257,7 +257,7 @@ class MetricsForm(forms.Form):
     end_date = forms.DateField(required=False,
             widget=forms.DateInput(format='%m/%d/%Y',
             attrs={'class':'form-control', 'placeholder':'mm/dd/yyyy'}))
-    
+
 class LinkForm(forms.ModelForm):
 # EXCLUDE id and service; service foreign key causes form validation failure
     class Meta:
@@ -280,7 +280,7 @@ class HostForm(forms.ModelForm):
     #)
     def clean(self):
         """
-        For several fields, either an existing entry must be selected from 
+        For several fields, either an existing entry must be selected from
         drop-down, or a new entry entered.  This override of clean() checks
         for all of these cases.
         """
@@ -308,7 +308,7 @@ class HostForm(forms.ModelForm):
 
 #    def clean_service(self):    # We set this, so we don't affect changed_data
 #        return self.cleaned_data['service']
-        
+
     #type = forms.ChoiceField(choices=TYPE_CHOICES,
     #        widget=forms.Select(attrs={'class':'form-control'}))
     # REMOVED empty_label=None on 11/5/2022

@@ -1,3 +1,6 @@
+v2.4.0 jlambertson
+  - added an API query tool v1 to the service index for adding new users
+
 v2.3.0 2024-10-25 jlambertson
   - upgraded Django to 5.0.*; migrated from django-bootstrap-v5 to django-bootstrap5 24.*
 
@@ -24,7 +27,7 @@ v2.1.0 2022-12-26 JP
   - Use djangorestframework for api serializers
   - Significant update_service improvements & fixes to properly handle form errors
   - Standardize on "Y/m/d H:i" datetime format
-  
+
 v2.0.2 2022-12-06 JP
   - Improve logging
 
@@ -48,7 +51,7 @@ v2.0.0 2022-11-28 JP
   - Place message block below navigation
   - Implement consistent save/cancel buttons
   - Implement acccordion glyphicon
-  - Rename several templates with better names 
+  - Rename several templates with better names
   - New syslog_standard_10514 and syslog_relp_10515 check boxes model fields
 
 v1.2.2 2022-11-11 JP
