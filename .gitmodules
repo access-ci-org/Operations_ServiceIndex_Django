@@ -1,3 +1,0 @@
-[submodule "Operations_ServiceIndex_Django/djangouseradmin"]
-	path = Operations_ServiceIndex_Django/djangouseradmin
-	url = git@github.com:access-ci-org/Operations_Django_ACCESS_Account_Admin.git

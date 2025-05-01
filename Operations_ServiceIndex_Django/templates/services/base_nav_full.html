@@ -41,9 +41,9 @@
         {% endif %}People</a></li>
 
         <li class="nav-item">
-        {% if page == 'user_management' %}<a class="nav-link active" aria-current="page" href="#">
-        {% else %}<a class="nav-link" href="{% url 'djangouseradmin:index' %}">
-        {% endif %}User Admin</a></li>
+        {% if page == 'access_django_user_admin' %}<a class="nav-link active" aria-current="page" href="#">
+        {% else %}<a class="nav-link" href="{% url 'access_django_user_admin:index' %}">
+        {% endif %}Django User Admin</a></li>
 
         <li class="nav-item">
         {% if page == 'events' %}<a class="nav-link active" aria-current="page" href="#">

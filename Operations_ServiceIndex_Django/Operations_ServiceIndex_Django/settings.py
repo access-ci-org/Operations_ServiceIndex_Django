@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'services',
-    'djangouseradmin.apps.DjangoUserAdminConfig',
+    'access_django_user_admin.apps.Access_Django_User_AdminConfig',
     # For django-allauth
     'django.contrib.sites',
     'allauth',
