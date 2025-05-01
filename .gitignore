@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 
 ### MY STUFF ###
+access_django_user_admin/
 database/dump/
 provision/web/Operations_Registry_Django.conf
 operations-app.access-ci.org.key
@@ -138,3 +139,4 @@ operations-app.access-ci.org.pub
 .idea/
 Pipfile
 Pipfile.lock
+API_KEY

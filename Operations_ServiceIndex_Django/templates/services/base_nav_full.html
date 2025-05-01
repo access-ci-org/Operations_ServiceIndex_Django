@@ -41,6 +41,11 @@
         {% endif %}People</a></li>
 
         <li class="nav-item">
+        {% if page == 'access_django_user_admin' %}<a class="nav-link active" aria-current="page" href="#">
+        {% else %}<a class="nav-link" href="{% url 'access_django_user_admin:index' %}">
+        {% endif %}Django User Admin</a></li>
+
+        <li class="nav-item">
         {% if page == 'events' %}<a class="nav-link active" aria-current="page" href="#">
         {% else %}<a class="nav-link" href="{% url 'services:events' %}">
         {% endif %}Events</a></li>
@@ -59,7 +64,7 @@
         {% if page == 'export' %}<a class="nav-link active" aria-current="page" href="#">
         {% else %}<a class="nav-link" href="{% url 'services:export' %}">
         {% endif %}Export...</a></li>
-            
+
         <li class="nav-item">
         {% if page == 'log_out' %}<a class="nav-link active" aria-current="page" href="#">
         {% else %}<a class="nav-link" href="{% url 'services:clear_and_logout' %}">
