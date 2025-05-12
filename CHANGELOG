@@ -1,13 +1,17 @@
-v2.4.0 2025-05.05 jlambertson
+v2.4.0 2025-05-12 jlambertson
+
 - added an API query tool to the service index for adding new Django users
 
 v2.3.0 2024-10-25 jlambertson
-- upgraded Django to 5.0.*; migrated from django-bootstrap-v5 to django-bootstrap5 24.*
+
+- upgraded Django to 5.0._; migrated from django-bootstrap-v5 to django-bootstrap5 24._
 
 v2.2.1 2024-10-09 jlambertson
+
 - updated the Host model to conform to the multiple 'ip_addresses' addition from v2.2.0
 
 v2.2.0 2024-08-29 jlambertson
+
 - Added 'service_tags' and 'host_tags' to models, forms, and a few templates to enter and view user-added tags to both categories
 - Removed Notes from the export API, otherwise viewable while logged in
 - Increased character limit for host.ip_addresses and edited single grammar to include plural options
@@ -15,9 +19,11 @@ v2.2.0 2024-08-29 jlambertson
 - added a table, misc_urls, to models to include urls for various possible links being added to the site; as well as a name column by which the specific context urls can be queried
 
 v2.1.1 2023-03-22 JP
+
 - Remove API login requirement, contact names but no phone or emails are returned
 
 v2.1.0 2022-12-26 JP
+
 - Ordered Cancel button left, Save button right
 - Added LogEntry fields that reference host, staff, and event for expanded logging
 - Improve LogEntry viewing for expanded logging
@@ -29,9 +35,11 @@ v2.1.0 2022-12-26 JP
 - Standardize on "Y/m/d H:i" datetime format
 
 v2.0.2 2022-12-06 JP
+
 - Improve logging
 
 v2.0.1 2022-12-05 JP
+
 - Fix new service bug that prevented links and hosts from being added
 - Set btn-access-auth border-radius
 - Include information/help glyphicon in header linking to application information in the operations portal
@@ -40,13 +48,14 @@ v2.0.1 2022-12-05 JP
 - Fix service edit button width
 
 v2.0.0 2022-11-28 JP
+
 - Upgrade and convert to django-bootstrap-v5 installed in pipenv, remove old local version
 - Upgrade and convert to JQuery Core 3.6.1 and JQuery UI 1.13.1 loaded from code.jquery.com cdn, remove old local version
 - Support connecting sociallogin to existing Drupal user
 - Apply ACCESS web styling, including fonts, buttons, login/logout button style
 - Add favicon.ico with url path handler
 - Fix service date fields to use JS datepicker
-- Implement a standard logo block used by both no-nav/pre-login and nav/post-login headers (base_nav_*.html)
+- Implement a standard logo block used by both no-nav/pre-login and nav/post-login headers (base*nav*\*.html)
 - Include APP_VERSION in standard logo block
 - Place message block below navigation
 - Implement consistent save/cancel buttons
@@ -55,9 +64,11 @@ v2.0.0 2022-11-28 JP
 - New syslog_standard_10514 and syslog_relp_10515 check boxes model fields
 
 v1.2.2 2022-11-11 JP
+
 - New 'viewers' group, update all views to require editor or viewer privs as appropriate
 
 v1.2.1 2022-11-11 JP
+
 - Fix link form saving bug
 - Make metrics entry dates Central time aware since log entries do have a UTC timzeone
 - When log entries are display, make it clear they are in UTC
@@ -65,6 +76,7 @@ v1.2.1 2022-11-11 JP
 - Show (username) in logout link
 
 v1.2.0 2022-11-07 JP
+
 - More opsres to serviceindex changes
 - Convert to use ModelForms
 - Separate add_service, edit_service, update_service urls and functions
@@ -79,16 +91,21 @@ v1.2.0 2022-11-07 JP
 - Other minor improvements
 
 v1.1.1 2022-10-28 JP
+
 - Remove logacy socialauth configuration
 
 v1.1.0 2022-10-28 JP
+
 - Renamed application from Registry to ServiceIndex
 
 tag-1.0.2 2022-10-13 JP
+
 - Add required trailing slash to login/ url
 
 tag-1.0.1 2022-09-23 JP
+
 - Improved Docker build and implement https support
 
 tag-1.0.0 2022-09-20 JP
+
 - Initial check-in of fully functional application
