@@ -1,3 +1,7 @@
+v2.4.1 2025-07-29 jlambertson
+
+- configuring to better handle the Django admin user app: https://github.com/access-ci-org/Operations_ACCESS_Django_User_Admin
+
 v2.4.0 2025-05-12 jlambertson
 
 - added an API query tool to the service index for adding new Django users
