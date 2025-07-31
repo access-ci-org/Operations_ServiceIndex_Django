@@ -144,8 +144,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.contrib.messages.context_processors.messages',
                 'django.contrib.auth.context_processors.auth',
-                'django.template'
-                '.context_processors.request',
+                'django.template.context_processors.request',
                 'services.context_processors.misc_urls_processor',
                 'services.context_processors.app_context_processor',
 #                'django.template.context_processors.debug',
