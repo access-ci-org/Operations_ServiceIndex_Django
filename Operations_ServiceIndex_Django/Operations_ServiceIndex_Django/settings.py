@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'services',
-    'access_django_user_admin.apps.Access_Django_User_AdminConfig',
+    'access_django_user_admin',
     # For django-allauth
     'django.contrib.sites',
     'allauth',
@@ -131,8 +131,12 @@ ROOT_URLCONF = 'Operations_ServiceIndex_Django.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [ os.path.normpath(os.path.join(os.path.dirname(__file__), '../templates')),
-                  os.path.normpath(os.path.join(os.path.dirname(__file__), '../Operations_ServiceIndex_Django/templates')),],
+        # django old version - testing new version below this 2025-August
+        # 'DIRS': [
+        #     os.path.normpath(os.path.join(os.path.dirname(__file__), '../templates')),
+        #     os.path.normpath(os.path.join(BASE_DIR, 'templates')),
+        # ],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
