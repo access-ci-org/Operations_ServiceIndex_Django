@@ -33,7 +33,7 @@ def viewers_check(user):
     return user.groups.filter(name='editors').exists() or user.groups.filter(name='viewers').exists()
 
 def unprivileged(request):
-    return render(request, 'services/unprivileged.html')
+    return render(request, 'web/unprivileged.html')
 
 def is_privileged(request):
     return True if request.user.username == 'navarro' else False
@@ -677,7 +677,7 @@ def clear_and_logout(request):
 @login_required
 def edit_sorry(request):
     context = {'app_name': settings.APP_NAME}
-    return render(request, 'services/edit_sorry.html', context)
+    return render(request, 'web/edit_sorry.html', context)
 
 @login_required
 @user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))

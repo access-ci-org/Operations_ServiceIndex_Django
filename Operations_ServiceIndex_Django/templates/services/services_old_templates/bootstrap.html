@@ -1,0 +1,42 @@
+{% extends 'django_bootstrap5/bootstrap5.html' %}
+
+{% block bootstrap5_title %}{% block title %}{% endblock %}{% endblock %}
+
+{% load static %}
+
+{% load get_settings %}
+
+{% block bootstrap5_extra_head %}
+    <link type="text/css" href="//code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css" rel="stylesheet" />
+    <link type="text/css" href="{% static 'services/style-serviceindex.css' %}" rel="stylesheet" />
+{% endblock %}
+
+{% block bootstrap5_extra_script %}
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" crossorigin="anonymous"></script>
+    {% block page_extra_scripts %}{% endblock %}
+{% endblock %}
+
+{% block serviceindex_global_header %}
+<style media="screen" type="text/css"></style>
+
+<div class="container-fluid py-2">
+    <div class="p-3 mb-2 bg-header rounded-3">
+        <table style="min-width: 100%">
+            <tr style="vertical-align: top;">
+                <td>
+                    <a href="https://operations.access-ci.org/" title="Operations Home" rel="home">
+                        <img src="/static/services/img/ACCS050322_ACCESS_Brand_Operations-RGB.png" alt="Home"></a>
+                </td>
+                <td style="vertical-align: top;">
+                    <h2 class="display-6 fw-bold">{% settings_value "APP_NAME" %}</h2>
+                </td>
+                <td style="vertical-align: bottom;"><a href="https://operations.access-ci.org/online_services/service_index" target="_blank">
+                    <span class="glyphicon glyphicon-info-sign text-dark" style="font-size:18px"></span></a>
+                </td>
+                <td style="vertical-align: bottom;"><a class="text-dark" href="https://github.com/access-ci-org/Operations_ServiceIndex_Django" target="_blank">{% settings_value "APP_VERSION" %}</a></td>
+            </tr>
+        </table>
+    </div>
+</div> <!-- container-fluid -->
+{% endblock %}

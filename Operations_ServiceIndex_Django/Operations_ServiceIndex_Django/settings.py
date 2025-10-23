@@ -131,11 +131,6 @@ ROOT_URLCONF = 'Operations_ServiceIndex_Django.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # django old version - testing new version below this 2025-August
-        # 'DIRS': [
-        #     os.path.normpath(os.path.join(os.path.dirname(__file__), '../templates')),
-        #     os.path.normpath(os.path.join(BASE_DIR, 'templates')),
-        # ],
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
