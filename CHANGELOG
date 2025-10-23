@@ -1,6 +1,6 @@
 v2.5.0 2025-10-24 jlambertson
 
-- Switching structure from services/ to web/ as default app with necessary templates and routing changes
+- Switching common templates from services/ to web/ to match new practice
 
 v2.4.1 2025-07-29 jlambertson
 
