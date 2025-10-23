@@ -14,9 +14,9 @@ from zoneinfo import ZoneInfo
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf import settings
 
-from web.models import *
-from web.serializers import *
-import web.signals
+from services.models import *
+from services.serializers import *
+import services.signals
 
 from .models import Misc_urls
 
@@ -38,8 +38,8 @@ def unprivileged(request):
 def is_privileged(request):
     return True if request.user.username == 'navarro' else False
 
-@login_required
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def index(request):
     """
     Main index view of list of services; can have one GET parameter specifying
@@ -67,10 +67,10 @@ def index(request):
             'services': services,
             'expand_all': expand_all, 'editor':editor,
             'app_name': settings.APP_NAME}
-    return render(request, 'web/services_index.html', context)
+    return render(request, 'services/services_index.html', context)
 
-@login_required
-@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def add_service(request):
     service_form = ServiceForm(prefix='service', instance=Service())
 
@@ -88,10 +88,10 @@ def add_service(request):
             'debug': 'first time',
             'privileged': is_privileged(request),
             'app_name': settings.APP_NAME}
-    return render(request, 'web/service.html', context)
+    return render(request, 'services/service.html', context)
 
-@login_required
-@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def edit_service(request, service_id):
     # TODO check for valid service_id and return message??
     service = Service.objects.get(pk=service_id)
@@ -128,10 +128,10 @@ def edit_service(request, service_id):
             'privileged': is_privileged(request),
             'app_name': settings.APP_NAME
     }
-    return render(request, 'web/service.html', context)
+    return render(request, 'services/service.html', context)
 
-@login_required
-@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def update_service(request):
     """
     Form for editing a service; the hidden service_id is None/zero for a new service
@@ -167,20 +167,20 @@ def update_service(request):
         PCP = request.POST.copy()
         PCP['links-TOTAL_FORMS'] = int(PCP['links-TOTAL_FORMS']) + 1
         CTX['link_formset'] = LinkFormSet(PCP, prefix='links', queryset=related_links)
-        return render(request, 'web/service.html', CTX)
+        return render(request, 'services/service.html', CTX)
 
     if 'add_host' in request.POST:
         CTX['debug'] = 'add host'
         PCP = request.POST.copy()
         PCP['hosts-TOTAL_FORMS'] = int(PCP['hosts-TOTAL_FORMS']) + 1
         CTX['host_formset'] = HostFormSet(PCP, prefix='hosts', queryset=related_hosts)
-        return render(request, 'web/service.html', CTX)
+        return render(request, 'services/service.html', CTX)
 
     # Processing a 'Save'
     CTX['debug'] = 'updating'
 
     if not service_form.is_valid():
-        return render(request, 'web/service.html', CTX)
+        return render(request, 'services/service.html', CTX)
 
     # if service_id != 0, then we're editing existing service
     if not service_id:
@@ -200,7 +200,7 @@ def update_service(request):
         link_form.instance.service_id = service.id
         if link_form.has_changed():
             if not link_form.is_valid():
-                return render(request, 'web/service.html', CTX)
+                return render(request, 'services/service.html', CTX)
             link_form.save()
     link_formset.save()
 
@@ -211,7 +211,7 @@ def update_service(request):
         host_form.instance.service_id = service.id
         if host_form.has_changed():
             if not host_form.is_valid():
-                return render(request, 'web/service.html', CTX)
+                return render(request, 'services/service.html', CTX)
 
             if not host_form.cleaned_data['location']:
                 host_form.instance.location, created = Site.objects.get_or_create(
@@ -269,11 +269,11 @@ def update_service(request):
     if link_formset.total_error_count() == 0 and host_formset.total_error_count() == 0:
         return redirect(reverse('services:index'))
 
-    return render(request, 'web/service.html', CTX)
+    return render(request, 'services/service.html', CTX)
 
 
-@login_required
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def export(request):
     """
     Shows form for selecting fields; when fields are selected, renders plain
@@ -320,7 +320,7 @@ def export(request):
                 services.append(service)
             # render plain text listing
             response = http.HttpResponse(content_type='text/plain')
-            t = get_template('web/export.txt')
+            t = get_template('services/export.txt')
             context = {'services':services}
             response.write(t.render(context, request))
             msg = '{} exported data'.format(request.user.username)
@@ -341,10 +341,10 @@ def export(request):
             host_fields.append(field)
     context = {'page': 'export', 'service_fields': service_fields,
             'host_fields': host_fields, 'app_name': settings.APP_NAME}
-    return render(request, 'web/export_choices.html', context)
+    return render(request, 'services/export_choices.html', context)
 
-@login_required
-@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def custom(request):
     """
     Shows form for selecting fields; when fields are selected, renders
@@ -393,7 +393,7 @@ def custom(request):
                 rows.append(row)
             # render plain text listing
             context = {'headings':headings, 'rows':rows,}
-            return render(request, 'web/custom.html', context)
+            return render(request, 'services/custom.html', context)
             #response = http.HttpResponse(content_type='text/plain')
             #t = get_template('services/export.txt')
             #context = Context({'services':services})
@@ -415,17 +415,17 @@ def custom(request):
             host_fields.append(field)
     context = {'service_fields':service_fields,
             'host_fields':host_fields}
-    return render(request, 'web/export_choices.html', context)
+    return render(request, 'services/export_choices.html', context)
 
 def Misc_urls(request):
     url_loc = Misc_urls.objects.first()
     context = {
         'URL_LOC': Misc_urls.urls,
     }
-    return render(request, 'web/hosts.html', context)
+    return render(request, 'services/hosts.html', context)
 
-@login_required
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def hosts(request, order_field='hostname'):
 #    hosts = {}
     hosts = collections.OrderedDict()
@@ -476,10 +476,10 @@ def hosts(request, order_field='hostname'):
     context = {'page': 'hosts', 'hosts': hosts,
             'order_field': order_field,
             'app_name': settings.APP_NAME}
-    return render(request, 'web/hosts.html', context)
+    return render(request, 'services/hosts.html', context)
 
-@login_required
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def hosts_by_service(request):
     s = ''
     services = []
@@ -494,10 +494,10 @@ def hosts_by_service(request):
             s = i.service.name
 
     context = {'services':services,}
-    return render(request, 'web/hosts_by_service.html', context)
+    return render(request, 'services/hosts_by_service.html', context)
 
-@login_required
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def people(request):
     people = []
     # TODO this should not get ones that are deprecated
@@ -514,10 +514,10 @@ def people(request):
     #            'deprecated':h.service.deprecated})
     context = {'page': 'people', 'people': people,
             'app_name': settings.APP_NAME}
-    return render(request, 'web/people.html', context)
+    return render(request, 'services/people.html', context)
 
-@login_required
-@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def edit_staff(request, staff_id):
     staff = Staff.objects.get(pk=staff_id)
     if request.POST:
@@ -537,11 +537,11 @@ def edit_staff(request, staff_id):
     context = {'page': 'people', 'form':form,
             'staff_name':staff.name, 'staff_id':staff_id,
             'app_name': settings.APP_NAME}
-    return render(request, 'web/edit_staff.html', context)
+    return render(request, 'services/edit_staff.html', context)
 
 
-@login_required
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def metrics(request):
     start = None
     end = None
@@ -599,11 +599,11 @@ def metrics(request):
             'new_hosts':new_hosts, 'deprecations':deprecations,
             'total_services':total_services, 'total_hosts':total_hosts,
             'app_name': settings.APP_NAME}
-    return render(request, 'web/metrics.html', context)
+    return render(request, 'services/metrics.html', context)
 
 
-@login_required
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def listing(request):
     """
     This is used for text dump of all services with fields separated by pipes;
@@ -618,14 +618,14 @@ def listing(request):
     for s in Service.objects.order_by('name'):
         services.append({'service': s, 'hosts': s.host_set.all()})
 
-    t = get_template('web/listing.txt')
+    t = get_template('services/listing.txt')
     #context = Context({'services':services})
     context = Context({'services':services, 'debug':debug})
     response.write(t.render(context))
     return response
 
-@login_required
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def log_listing(request):
     """
     This is used for text dump of all log entries;
@@ -636,7 +636,7 @@ def log_listing(request):
     response = http.HttpResponse(content_type='text/plain')
     logs = LogEntry.objects.all().order_by('timestamp')
 
-    t = get_template('web/log_listing.txt')
+    t = get_template('services/log_listing.txt')
     context = Context({'logs':logs})
     response.write(t.render(context))
     return response
@@ -649,14 +649,14 @@ def make_log_entry(username, msg, service=None, host=None, staff=None, event=Non
     le = LogEntry(username=username, msg=msg, service=service, host=host, staff=staff, event=event)
     le.save()
 
-@login_required
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def view_log(request):
     log = LogEntry.objects.all().order_by('-timestamp')
     context = {'page': 'view_log', 'log': log, 'app_name': settings.APP_NAME}
-    return render(request, 'web/view_log.html', context)
+    return render(request, 'services/view_log.html', context)
 
-@login_required
+#@login_required
 def login(request):
     remote_ip = request.META.get('HTTP_X_FORWARDED_FOR')
     if not remote_ip:
@@ -667,20 +667,20 @@ def login(request):
     make_log_entry(request.user.username, msg)
     return redirect(reverse('services:index'))
 
-@login_required
+#@login_required
 def clear_and_logout(request):
 #   Clear any locks by current user
     EditLock.objects.filter(username=request.user.username).delete()
 #   Standard logging handled in signals.py
     return redirect(reverse('account_logout'))
 
-@login_required
+#@login_required
 def edit_sorry(request):
     context = {'app_name': settings.APP_NAME}
     return render(request, 'web/edit_sorry.html', context)
 
-@login_required
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def events(request):
     events = []
     for e in Event.objects.order_by('-created'):
@@ -707,10 +707,10 @@ def events(request):
 
     context = {'page': 'events', 'events':events,
             'app_name': settings.APP_NAME}
-    return render(request, 'web/events.html', context)
+    return render(request, 'services/events.html', context)
 
-@login_required
-@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def add_event(request):
     if request.POST:
         form = AddEventForm(request.POST)
@@ -729,10 +729,10 @@ def add_event(request):
 
     context = {'page': 'events', 'form':form,
             'app_name': settings.APP_NAME}
-    return render(request, 'web/add_event.html', context)
+    return render(request, 'services/add_event.html', context)
 
-@login_required
-@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def event(request, event_id):
     # col offsets to use in template for each status tag
     cols = {HostEventStatus.UNCHECKED:0,HostEventStatus.IN_PROGRESS:3,
@@ -754,10 +754,10 @@ def event(request, event_id):
                 'label_type':label_types[hes.status]})
     context = {'page': 'events', 'event':event, 'hosts':hosts,
             'app_name': settings.APP_NAME}
-    return render(request, 'web/event.html', context)
+    return render(request, 'services/event.html', context)
 
-@login_required
-@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
+#@login_required
+#@user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def update_event(request, hes_id):
     hes = HostEventStatus.objects.get(pk=hes_id)
 
@@ -780,7 +780,7 @@ def update_event(request, hes_id):
 
     context = {'page': 'events', 'form':form, 'hes':hes,
             'app_name': settings.APP_NAME}
-    return render(request, 'web/update_event.html', context)
+    return render(request, 'services/update_event.html', context)
 
 
 # the remainder are tests that are no longer being used
@@ -800,16 +800,16 @@ def do_pdf(template_src, context_dict):
         return http.HttpResponse(result.getvalue(), mimetype='application/pdf')
     return http.HttpResponse('pdf error! %s' % cgi.escape(html))
 
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def make_pdf(request):
     services = []
     for s in Service.objects.order_by('name'):
         services.append({'service': s, 'instances': s.instance_set.all()})
 
     context = {'services':services}
-    return do_pdf('web/services_for_pdf.html', context)
+    return do_pdf('services/services_for_pdf.html', context)
 
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
+#@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def api_hosts(request):
     objects = Host.objects.all()
     serializer = Host_Serializer(objects, many=True)

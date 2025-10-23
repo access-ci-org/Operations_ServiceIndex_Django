@@ -1,4 +1,0 @@
-{% autoescape off %}{% for s in services %}{{ s.service.name }}|{{ s.service.description }}|{{ s.service.hostname }}|{{ s.service.dependencies }}|{{ s.service.failover_process }}|{{ s.service.failover_last_tested|date:"m/d/Y" }}|{{ s.service.lb }}|{{ s.service.ha }}|{{ s.service.otp }}|{{ s.service_tags }}
-{% for h in s.hosts %}host|{{ h.label }}|{{ h.location }}|{{ h.hostname }}|{{ h.ip_addresses }}|{{ h.availability }}|{{ h.support }}|{{ h.sys_admin.name }}|{{ h.sys_admin.email }}|{{ h.poc_primary.name }}|{{ h.poc_primary.email }}|{{ h.poc_backup.name }}|{{ h.poc_backup.email }}|{{ h.host_tags }}
-{% endfor %}{% for link in s.service.link_set.all %}link|{{ link.url }}|{{ link.description }}
-{% endfor %}{% endfor %}{% endautoescape %}
