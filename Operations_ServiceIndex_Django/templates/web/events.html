@@ -1,0 +1,43 @@
+{% extends "web/base_nav_full.html" %}
+
+{% block title %}Events{% endblock %}
+
+{% block content %}
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>EVENT</th>
+        <th>CREATED</th>
+        {#<th>DESCRIPTION</th>#}
+        <td><span class="label label-danger">UNCHECKED</span></td>
+        <td><span class="label label-warning">IN PROGRESS</span></td>
+        <td><span class="label label-success">COMPLIANT</span></td>
+        <td><span class="label label-primary">N/A</span></td>
+    </tr>
+    </thead>
+    <tbody style="font-size-adjust:0.5">
+    {% for event in events %}
+        <tr>
+            <td class="col-sm-2"><a href="{% url 'services:event' event.id %}">{{ event.name }}</a></td>
+            <td class="col-sm-2">{{ event.created|date:"Y/m/d H:i" }}</td>
+            {#<td class="col-sm-4">{{ event.description }}</td>#}
+            {#<td class="col-sm-4">{{ event.totals.unchecked|floatformat:0 }}%</td>#}
+            <td class="col-sm-2">{{ event.totals.unchecked }}/{{ event.totals.hosts }}</td>
+            <td class="col-sm-2">{{ event.totals.in_progress }}/{{ event.totals.hosts }}</td>
+            <td class="col-sm-2">{{ event.totals.compliant }}/{{ event.totals.hosts }}</td>
+            <td class="col-sm-2">{{ event.totals.na }}/{{ event.totals.hosts }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<div class="row">
+    <div class="col-md-3">
+        <a href="{% url 'services:add_event' %}" class="btn btn-outline-success" role="button" style="margin-bottom:15px;">
+        <span class="glyphicon glyphicon-plus"></span>
+        Add New Event</a>
+    </div>
+</div>
+
+{% endblock %}

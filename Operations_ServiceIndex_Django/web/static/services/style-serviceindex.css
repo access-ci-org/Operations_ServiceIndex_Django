@@ -1,0 +1,308 @@
+/* tried this to make pisa use landscape for pdfs; didn't work */
+/*
+@page {
+    size: a4 landscape;
+}
+*/
+
+:root {
+    --bs-dark: #1A5B6E;
+    --bs-dark-rgb: 26, 91, 110;
+    --bs-light: #ECF9F8;
+    --bs-light-rgb: 236, 249, 248;
+    --bs-primary: #FFC42D;
+    --bs-primary-rgb: 255, 196, 45;
+    --bs-secondary: #138597;
+    --bs-secondary-rgb: 19, 133, 151;
+}
+
+.bg-access-dark {
+    background-color: #1A5B6E
+}
+
+.bg-access-medium {
+    background-color: #138597
+}
+
+.bg-access-light {
+    background-color: #ECF9F8
+}
+
+.bg-header {
+    background-color: #eee;
+}
+
+.btn-access-auth {
+    font-family: Archivo;
+    font-size: 14px;
+    font-weight: 700;
+    font-stretch: normal;
+    font-style: normal;
+    color: #000;
+    box-sizing: border-box;
+    background-color: #fec42d;
+    border-color: #fec42d;
+    border-radius: 0;
+    border-width: 4px;
+    padding: 8px;
+    text-decoration: none;
+    vertical-align: middle;
+}
+
+.btn-access-auth:hover {
+    background-color: #fff;
+    border-color: #000;
+}
+    
+body {
+   font:normal 14px Archivo, Verdana, Helvetica;
+}
+
+h1 {
+    font-size: 36px
+}
+
+h2 {
+    font-size: 24px
+}
+
+h3 {
+    font-size: 20px
+}
+
+h4 {
+    font-size: 18px
+}
+
+h5 {
+    font-size: 16px
+}
+
+.access-intro {
+    font-size: 24px;
+}
+
+.access-paragraph {
+    font-size: 18px;
+}
+
+input, textarea {
+    font-size:1.2em;
+}
+input.medium {
+    width:300px;
+}
+select.medium {
+    font-size:1.2em;
+    width:140px;
+}
+div.submit {
+    width:100%;
+    text-align:center;
+}
+
+table {
+    width:100%;
+    border-collapse: collapse;
+}
+
+td {
+   padding:.25em;
+   /*border:1px solid #ccc;*/
+   /*width:80px;*/
+   /*background-color:green;*/
+}
+
+div.field_row {
+    width:100%;
+    height:50px;
+    /*border:1px solid green;*/
+    position:relative;
+    clear:left;
+    margin-bottom:10px;
+
+}
+div.field {
+    float:left;
+    margin-left:10px;
+}
+div.field span {
+    display:block;
+    width:150px;
+    text-align:right;
+    color:#777;
+    float:left;
+    margin-right:7px;
+    margin-top:5px;
+    /*margin-left:10px;*/
+}
+div.field span.short {
+    width:70px;
+}
+div.field span.error {
+    color: red;
+    font-style:italic;
+    margin-left:150px;
+}
+div.field span.above {
+    float:none;
+    text-align:left;
+}
+fieldset {
+    clear:left;
+}
+div.index_row {
+    width:100%;
+    height:50px;
+    border:1px solid green;
+}
+div.index_cell {
+    border:1px solid blue;
+    float:left;
+}
+div.name {
+    width:15%;
+    text-align:center;
+    font-weight:bold;
+    background-color:#eee;
+}
+div.description {
+    width:40%;
+}
+div.deps {
+    width:40%;
+}
+div.test {
+    height:24px;
+    width:1200px;
+    border:1px solid red;
+}
+table#index {
+    width:1200px;
+    font-size:1em;
+}
+table#index a {
+    font-weight:bold;
+    color:#277cc1;
+    text-decoration:none;
+}
+table#index a:hover {
+    text-decoration:underline;
+}
+table.service {
+    font-size:1em;
+    /*border:1px solid red;*/
+}
+td.short {
+    width:100px;
+    /*background-color:yellow;*/
+}
+td.medium {
+    width:170px;
+    /*background-color:green;*/
+}
+td span {
+    font-weight: bold;
+    color:#ccc;
+}
+td.outlined {
+    border:1px solid #ccc;
+}
+
+/* ALL THE NEW STUFF
+ */
+
+.card > .card-header {
+    color: #31708f;
+    background-color: #d9edf7;
+    border-color:#bce8f1
+}
+
+.nav-pills li {
+    color: #428bca !important;
+}
+
+.nav-pills a:hover {
+    color: #000000 !important;
+}
+
+.nav-pills > li.active {
+    background-color: #428bca !important;
+}
+
+.nav-pills > li.active > a {
+    color: #fff;
+    text-decoration: none;
+}
+
+/*
+.nav-pills {
+    color: #008597;
+}
+*/
+
+/*
+.nav-link a:active {
+    color: #000000;
+}
+*/
+
+
+@font-face {
+    font-family: 'Glyphicons Halflings';
+    src: url('/static/services/fonts/glyphicons-halflings-regular.eot');
+    src: url('/static/services/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('/static/services/fonts/glyphicons-halflings-regular.woff') format('woff'), url('/static/services/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('/static/services/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg')
+}
+
+.glyphicon {
+    position: relative;
+    top: 1px;
+    display: inline-block;
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing:grayscale
+}
+
+.glyphicon-chevron-up:before {
+    content: "\e113"
+}
+
+.glyphicon-chevron-down:before {
+    content: "\e114"
+}
+
+.glyphicon-pencil:before {
+    content: "\270f"
+}
+
+.glyphicon-plus:before {
+    content: "\2b"
+}
+
+.glyphicon-remove:before {
+    content: "\e014"
+}
+
+.glyphicon-info-sign:before {
+    content: "\e086"
+}
+
+.accordion-button::after {
+    order: -1;
+    margin-left: 0;
+}
+
+/*.nav-link {*/
+/*    color: rgba(51, 51, 51);*/
+/*}*/
+/**/
+/*.nav-link .active {*/
+/*    color: #fff !important;*/
+/*    background-color: #428bca;*/
+/*    background-color-rgb: rgba(66, 139, 202);*/
+/*    */
+/*}*/
+

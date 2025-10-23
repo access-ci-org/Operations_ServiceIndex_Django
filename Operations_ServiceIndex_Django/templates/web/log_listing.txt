@@ -1,0 +1,2 @@
+{% autoescape off %}{% for log in logs %}{{ log.timestamp|date:"Y/m/d H:i:s:u" }}|{{ log.service }}|{{ log.username }}|{{ log.msg }}
+{% endfor %}{% endautoescape %}

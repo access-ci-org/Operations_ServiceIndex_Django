@@ -1,0 +1,82 @@
+{% extends "web/base_nav_full.html" %}
+
+{% block title %}Update Event{% endblock %}
+
+{% block content %}
+
+{% comment %}
+<p>form errors</p>
+<ul>
+{% for iform in instance_formset %}
+{% for field,errors in iform.errors.items %}
+    {% for error in errors %}
+        <li>{{ field }}: {{ error }}</li>
+        {# <li>{{ error }}</li> #}
+    {% endfor %}
+{% endfor %}
+{% endfor %}
+</ul>
+
+<p>Debug: {{ debug }}</p>
+<p>service_id: {{ service_id }}</p>
+{% endcomment %}
+
+
+<div class="row mb-2">
+    <div class="col-md-2" style="text-align:right">
+        <label for="{{ field.id_for_label }}" class="col-form-label">
+            <h2>Event:</h2>
+        </label>
+    </div>
+    <div class="col-sm-6">
+        <h2>{{ hes.event.name }}</h2>
+    </div>
+</div>
+
+<div class="row mb-2">
+    <div class="col-md-2" style="text-align:right">
+        <label for="{{ field.id_for_label }}" class="col-form-label">
+            <h3>Host:</h3>
+        </label>
+    </div>
+    <div class="col-sm-6">
+        <h3>{{ hes.host.hostname }}</h3>
+    </div>
+</div>
+
+<form role="form"
+    action="{% url 'services:update_event' hes.id %}" method="post">
+    {% csrf_token %}
+
+    {% for field in form %}
+    <div class="row mb-2 form-group{% if field.errors %} has-error has-feedback{% endif %}">
+        <div class="col-md-2" style="text-align:right; vertical-align:middle">
+            <label for="{{ field.id_for_label }}" class="col-form-label">
+                {{ field.label }}:
+            </label>
+        </div>
+        <div class="col-sm-6">
+            {{ field }}
+            {% if field.errors %}
+            <span class="glyphicon glyphicon-remove form-control-feedback">
+            </span>
+            {% endif %}
+        </div>
+        {% if field.errors %}
+            <span class="error" style="color:#d9534f;">
+                {{ field.errors.0 }}</span>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="row mt-4">
+        <div class="col-sm-2">
+            <a class="btn btn-secondary" href="{% url 'services:event' hes.event.id %}" role="button">Cancel</a>
+        </div>
+        <div class="col-sm-2">
+            <input class="btn btn-primary" type="submit" value="Save" />
+        </div>
+    </div>
+
+</form>
+{% endblock %}

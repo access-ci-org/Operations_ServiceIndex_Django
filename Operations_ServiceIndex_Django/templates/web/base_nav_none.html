@@ -1,0 +1,27 @@
+{% extends "web/bootstrap.html" %}
+
+{# Load the tag library #}
+
+{% load django_bootstrap5 %}
+
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+{# Our application stuff #}
+{% load static %}
+{% load get_settings %}
+
+{% block bootstrap5_content %}
+
+{% block serviceindex_global_header %}
+{{ block.super }}
+{% endblock %}
+
+{# Display django.contrib.messages as Bootstrap alerts #}
+{% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
+
+{% block content %}
+{% endblock %}
+
+{% endblock %}

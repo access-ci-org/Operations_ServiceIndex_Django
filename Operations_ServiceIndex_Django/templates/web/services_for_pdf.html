@@ -1,0 +1,78 @@
+{% load static %}
+<html>
+<head>
+<link type="text/css" rel="stylesheet" href="{% static 'services/style-serviceindex.css' %}" />
+</head>
+<body>
+
+<p style="text-align:center;"><a href="/services/add/">Add New Service</a></p>
+
+{% comment %}
+{% for s in services %}
+<div class="index_row">
+    <div class="index_cell name">
+    <a href="{% url 'services:edit' s.service.id %}">{{ s.service.name }}</a>
+    </div>
+    <div class="index_cell description">{{ s.service.description }}</div>
+    <div class="index_cell deps">Dependencies: {{ s.service.dependencies }}</div>
+</div>
+{% endfor %}
+{% endcomment %}
+
+{# <div class="test"></div> #}
+
+<table id="index">
+{% for s in services %}
+<tr><td>
+    <table class="service">
+    <tr>
+    <td style="background-color:#eee; height:24px;" colspan="7">
+    <a href="{% url 'services:edit' s.service.id %}">{{ s.service.name }}</a>
+    {% if s.service.description %}
+    | {{ s.service.description }}
+    {% endif %}
+    </td>
+
+    <tr>
+    <td class="short"></td>
+    <td colspan="3"><span>Dependencies: </span> {{ s.service.dependencies }}</td>
+    <td colspan="3"><span>Failover: </span> {{ s.service.failover_process }}</td>
+    </tr>
+    <tr>
+        <td class="short"></td>
+        <td colspan="3"></td>
+        <td colspan="3"><span>Failover last tested: </span> {{ s.service.failover_last_tested }}</td>
+    </tr>
+
+
+    <tr>
+        <td class="short"></td>
+        <td colspan="2"><span>Load Balanced: </span>No</td>
+        <td colspan="2"><span>High Availability: </span>No</td>
+        <td colspan="2"><span>OTP Enabled: </span>No</td>
+    </tr>
+
+{% for link in s.service.link_set.all %}
+<tr><td class="short"></td><td colspan="6"><span>Link: </span>
+<a href="{{ link.url }}" target="_blank">{{ link.url }}</a> [{{ link.description }}]</td></tr>
+{% endfor %}
+
+    {% for i in s.instances %}
+    <tr>
+    <td style="text-align:right;" class="short"><b>{{ i.type }}:</b></td>
+    <td class="medium outlined">{{ i.location }}<br />{{ i.hostname }}<br />{{ i.ip_addresses }}</td>
+    <td class="short outlined">{{ i.availability }}<br />{{ i.support }}</td>
+    {# <td><a href="mailto:{{ i.sys_admin.email }}">{{ i.sys_admin.name }}</a></td> #}
+    <td class="medium outlined"><span>Sys Admin:</span><br />{{ i.sys_admin.last_name }}, {{ i.sys_admin.name }}<br />{{ i.sys_admin.email }}</td>
+    <td class="medium outlined"><span>Primary POC:</span><br />{{ i.poc_primary.last_name }}, {{ i.poc_primary.name }}<br />{{ i.poc_primary.email }}</td>
+    <td class="medium outlined"><span>Backup POC:</span><br />{{ i.poc_backup.last_name }}, {{ i.poc_backup.name }}<br />{{ i.poc_backup.email }}</td>
+    <td class="outlined"><span>Notes: </span>{{ i.note }}</td>
+    </tr>
+    {% endfor %}
+    </table>
+    </td></tr>
+{% endfor %}
+</table>
+
+</body>
+</html>

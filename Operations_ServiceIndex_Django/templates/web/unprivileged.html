@@ -1,0 +1,26 @@
+{% extends "web/base_nav_none.html" %}
+
+{% load get_settings %}
+
+{% block title %}Sorry{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-sm-6 col-sm-offset-3">
+        <div class="panel panel-info">
+        <div class="panel-heading">
+            <p class="lead">Sorry!</p>
+        </div>
+        <div class="panel-body">
+            <p>You are not authorized to access this part of the site.</p>
+
+         <p style="text-align:center;">
+         <a class="btn btn-default" href="{% url 'services:index' %}" 
+                     role="button">Back</a>
+        </p>
+        </div><!-- panel-body -->
+        </div><!-- panel -->
+    </div><!-- col -->
+</div><!-- row -->
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "web/base_nav_full.html" %}
+
+{% block title %}People{% endblock %}
+
+{% block content %}
+
+<table class="table table-striped">
+    <tr>
+        <th>Person</th><th>Contact</th><th>Hosts</th>
+    </tr>
+    {% for p in people %}
+            <tr>
+                <td>{{p.last_name}}, {{ p.name }}<br /><br />
+                &nbsp;&nbsp;&nbsp;<a href="{% url 'services:edit_staff' p.id %}"
+                class="btn btn-outline-success" role="button">
+                <span class="glyphicon glyphicon-pencil"></span>
+                Edit</a></td>
+                <td><a href="mailto:{{ p.email }}">{{ p.email }}</a>
+                {% if p.phone %}<br />{{ p.phone }}{% endif %}<br />
+                </td>
+                <td>
+                    {% for h in p.poc_primary_hosts %}
+                        Primary POC, <b>{{ h.service.name }}</b>, {{ h.label }}, {{ h.hostname }}</br>
+                    {% endfor %}
+                    {% for h in p.poc_backup_hosts %}
+                        Backup POC, <b>{{ h.service.name }}</b>, {{ h.label }}, {{ h.hostname }}</br>
+                    {% endfor %}
+                    {% for h in p.sys_admin_hosts %}
+                        Sys Admin, <b>{{ h.service.name }}</b>, {{ h.label }}, {{ h.hostname }}</br>
+                    {% endfor %}
+                </td>
+            </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}
