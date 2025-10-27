@@ -1,3 +1,7 @@
+v2.5.1 2025-10-27 jlambertson
+
+- adding new release for the. tag
+
 v2.5.0 2025-10-24 jlambertson
 
 - Switching common templates from services/ to web/ to match new practice
