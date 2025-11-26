@@ -609,7 +609,7 @@ def listing(request):
     This is used for text dump of all services with fields separated by pipes;
     produces txt file that can be easily parsed to re-populate database;
     technique for rendering txt file is documented here:
-    https://docs.djangoproject.com/en/dev/howto/outputting-csv/
+    https://docs.djangoproject.com/en/5.1/howto/outputting-csv/
     """
     debug = request.user.username
     #debug = request.session['debug']
@@ -631,7 +631,7 @@ def log_listing(request):
     This is used for text dump of all log entries;
     produces txt file that can be easily parsed to re-populate database;
     technique for rendering txt file is documented here:
-    https://docs.djangoproject.com/en/dev/howto/outputting-csv/
+    https://docs.djangoproject.com/en/5.1/howto/outputting-csv/
     """
     response = http.HttpResponse(content_type='text/plain')
     logs = LogEntry.objects.all().order_by('timestamp')
