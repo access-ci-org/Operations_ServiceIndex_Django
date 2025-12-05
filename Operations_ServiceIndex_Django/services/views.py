@@ -38,7 +38,7 @@ def unprivileged(request):
 def is_privileged(request):
     return True if request.user.username == 'navarro' else False
 
-@user_passes_test
+@login_required
 @user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def index(request):
     """
@@ -69,7 +69,7 @@ def index(request):
             'app_name': settings.APP_NAME}
     return render(request, 'services/services_index.html', context)
 
-@user_passes_test
+@login_required
 @user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def add_service(request):
     service_form = ServiceForm(prefix='service', instance=Service())
@@ -90,7 +90,7 @@ def add_service(request):
             'app_name': settings.APP_NAME}
     return render(request, 'services/service.html', context)
 
-@user_passes_test
+@login_required
 @user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def edit_service(request, service_id):
     # TODO check for valid service_id and return message??
@@ -130,7 +130,7 @@ def edit_service(request, service_id):
     }
     return render(request, 'services/service.html', context)
 
-@user_passes_test
+@login_required
 @user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def update_service(request):
     """
@@ -272,7 +272,7 @@ def update_service(request):
     return render(request, 'services/service.html', CTX)
 
 
-@user_passes_test
+@login_required
 @user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def export(request):
     """
@@ -343,7 +343,7 @@ def export(request):
             'host_fields': host_fields, 'app_name': settings.APP_NAME}
     return render(request, 'services/export_choices.html', context)
 
-@user_passes_test
+@login_required
 @user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def custom(request):
     """
@@ -424,7 +424,7 @@ def Misc_urls(request):
     }
     return render(request, 'services/hosts.html', context)
 
-@user_passes_test
+@login_required
 @user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def hosts(request, order_field='hostname'):
 #    hosts = {}
@@ -478,7 +478,7 @@ def hosts(request, order_field='hostname'):
             'app_name': settings.APP_NAME}
     return render(request, 'services/hosts.html', context)
 
-@user_passes_test
+@login_required
 @user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def hosts_by_service(request):
     s = ''
@@ -496,7 +496,7 @@ def hosts_by_service(request):
     context = {'services':services,}
     return render(request, 'services/hosts_by_service.html', context)
 
-@user_passes_test
+@login_required
 @user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def people(request):
     people = []
@@ -516,7 +516,7 @@ def people(request):
             'app_name': settings.APP_NAME}
     return render(request, 'services/people.html', context)
 
-@user_passes_test
+@login_required
 @user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def edit_staff(request, staff_id):
     staff = Staff.objects.get(pk=staff_id)
@@ -540,7 +540,7 @@ def edit_staff(request, staff_id):
     return render(request, 'services/edit_staff.html', context)
 
 
-@user_passes_test
+@login_required
 @user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def metrics(request):
     start = None
@@ -602,7 +602,7 @@ def metrics(request):
     return render(request, 'services/metrics.html', context)
 
 
-@user_passes_test
+@login_required
 @user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def listing(request):
     """
@@ -624,7 +624,7 @@ def listing(request):
     response.write(t.render(context))
     return response
 
-@user_passes_test
+@login_required
 @user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def log_listing(request):
     """
@@ -649,14 +649,14 @@ def make_log_entry(username, msg, service=None, host=None, staff=None, event=Non
     le = LogEntry(username=username, msg=msg, service=service, host=host, staff=staff, event=event)
     le.save()
 
-@user_passes_test
+@login_required
 @user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def view_log(request):
     log = LogEntry.objects.all().order_by('-timestamp')
     context = {'page': 'view_log', 'log': log, 'app_name': settings.APP_NAME}
     return render(request, 'services/view_log.html', context)
 
-@user_passes_test
+@login_required
 def login(request):
     remote_ip = request.META.get('HTTP_X_FORWARDED_FOR')
     if not remote_ip:
@@ -667,19 +667,19 @@ def login(request):
     make_log_entry(request.user.username, msg)
     return redirect(reverse('services:index'))
 
-@user_passes_test
+@login_required
 def clear_and_logout(request):
 #   Clear any locks by current user
     EditLock.objects.filter(username=request.user.username).delete()
 #   Standard logging handled in signals.py
     return redirect(reverse('account_logout'))
 
-@user_passes_test
+@login_required
 def edit_sorry(request):
     context = {'app_name': settings.APP_NAME}
     return render(request, 'web/edit_sorry.html', context)
 
-@user_passes_test
+@login_required
 @user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
 def events(request):
     events = []
@@ -709,7 +709,7 @@ def events(request):
             'app_name': settings.APP_NAME}
     return render(request, 'services/events.html', context)
 
-@user_passes_test
+@login_required
 @user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def add_event(request):
     if request.POST:
@@ -731,7 +731,7 @@ def add_event(request):
             'app_name': settings.APP_NAME}
     return render(request, 'services/add_event.html', context)
 
-@user_passes_test
+@login_required
 @user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def event(request, event_id):
     # col offsets to use in template for each status tag
@@ -756,7 +756,7 @@ def event(request, event_id):
             'app_name': settings.APP_NAME}
     return render(request, 'services/event.html', context)
 
-@user_passes_test
+@login_required
 @user_passes_test(editors_check, login_url=reverse_lazy('services:unprivileged'))
 def update_event(request, hes_id):
     hes = HostEventStatus.objects.get(pk=hes_id)
