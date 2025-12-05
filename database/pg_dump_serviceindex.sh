@@ -12,4 +12,4 @@ pg_dump -a -p 5434 -U serviceindex_django \
 
 echo "Manually execute:"
 echo "DROP OWNED BY serviceindex_django;"
-echo "CREATE SCHEMA serviceindex AUTHORIZATION serviceindec_django;"
+echo "CREATE SCHEMA serviceindex AUTHORIZATION serviceindex_django;"
