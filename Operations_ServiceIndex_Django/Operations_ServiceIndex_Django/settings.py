@@ -124,7 +124,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'services.context_processors.misc_urls_processor',
                 'services.context_processors.app_context_processor',
-#                'django.template.context_processors.debug',
             ],
         },
     },
