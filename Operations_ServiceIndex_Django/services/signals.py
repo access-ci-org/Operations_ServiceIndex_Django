@@ -3,7 +3,7 @@
 from django.contrib.auth.models import User
 from django.dispatch import receiver, Signal
 from allauth.account.signals import user_logged_in, user_logged_out
-from allauth.account.utils import sync_user_email_addresses, setup_user_email
+from allauth.account.utils import setup_user_email
 from allauth.socialaccount.providers.cilogon import provider
 from allauth.socialaccount.providers.oauth2.client import OAuth2Error
 from allauth.socialaccount.signals import pre_social_login
