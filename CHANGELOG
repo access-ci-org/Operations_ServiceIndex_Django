@@ -1,3 +1,6 @@
+v2.7.0 2026-01-13 jlambnertson
+- updating migration files and models to reflect current schema owners and search path defaults
+
 v2.6.1 2026-01-09 jlambnertson
 - updated user search path for postgres sschema
 
