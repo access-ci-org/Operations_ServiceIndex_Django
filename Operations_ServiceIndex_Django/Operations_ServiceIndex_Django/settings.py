@@ -152,7 +152,7 @@ for db in DATABASES:
     DATABASES[db]['ENGINE'] = 'django.db.backends.postgresql'
     DATABASES[db]['PORT'] = os.environ.get('PGPORT', CONF.get('DB_PORT', '5432'))
     DATABASES[db]['CONN_MAX_AGE'] = 600 # Persist DB connections
-    DATABASES[db]['OPTIONS'] = {'options': '-c search_path=serviceindex,public'}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
