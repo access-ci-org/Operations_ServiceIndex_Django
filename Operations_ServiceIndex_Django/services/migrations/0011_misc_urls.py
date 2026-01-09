@@ -16,9 +16,6 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=50)),
                 ('urls', models.URLField(max_length=512)),
-            ],
-            options={
-                'db_table': '"serviceindex"."misc_urls"',
-            },
+            ]
         ),
     ]

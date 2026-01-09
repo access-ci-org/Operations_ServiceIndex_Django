@@ -18,8 +18,6 @@ class Staff(models.Model):
     def __str__(self):
         return '{}, {} <{}>'.format(self.last_name, self.name, self.email)
 
-    class Meta:
-        db_table = '"serviceindex"."staff"'
 
 class Site(models.Model):
     """
@@ -32,8 +30,6 @@ class Site(models.Model):
     def __str__(self):
         return str(self.site)
 
-    class Meta:
-        db_table = '"serviceindex"."site"'
 
 class Support(models.Model):
     """
@@ -46,8 +42,6 @@ class Support(models.Model):
     def __str__(self):
         return str(self.hours)
 
-    class Meta:
-        db_table = '"serviceindex"."support"'
 
 class Availability(models.Model):
     """
@@ -61,8 +55,6 @@ class Availability(models.Model):
     def __str__(self):
         return '{}/{}'.format(self.tier, self.description)
 
-    class Meta:
-        db_table = '"serviceindex"."availability"'
 
 class Service(models.Model):
     """
@@ -89,8 +81,6 @@ class Service(models.Model):
     def __str__(self):
         return str(self.name)
 
-    class Meta:
-        db_table = '"serviceindex"."service"'
 
 class Host(models.Model):
     #TYPE_CHOICES = (
@@ -126,15 +116,11 @@ class Host(models.Model):
     def __str__(self):
         return 'label={}:host={}:service={}'.format(self.label, self.hostname, self.service)
 
-    class Meta:
-        db_table = '"serviceindex"."host"'
 
 class Misc_urls(models.Model):
     name = models.CharField(max_length=50)
     urls = models.URLField(max_length=512)
 
-    class Meta:
-        db_table = '"serviceindex"."misc_urls"'
 
     def __str__(self):
         return self.name
@@ -144,16 +130,12 @@ class Link(models.Model):
     url = models.URLField(max_length=512)
     description = models.CharField(max_length=1024)
 
-    class Meta:
-        db_table = '"serviceindex"."link"'
 
 class EditLock(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     username = models.CharField(max_length=25)
     service = models.ForeignKey(Service, on_delete=models.CASCADE,)
 
-    class Meta:
-        db_table = '"serviceindex"."editlock"'
 
 
 class Event(models.Model):
@@ -164,8 +146,6 @@ class Event(models.Model):
     def __str__(self):
         return '{} (id={})'.format(self.name, self.id)
 
-    class Meta:
-        db_table = '"serviceindex"."event"'
 
 class HostEventStatus(models.Model):
     UNCHECKED = 'unchecked'
@@ -183,8 +163,6 @@ class HostEventStatus(models.Model):
     status = models.CharField(max_length=32, choices=STATUS_CHOICES)
     #note = models.CharField(max_length=1024, blank=True)
 
-    class Meta:
-        db_table = '"serviceindex"."hosteventstatus"'
 
 
 class HostEventLog(models.Model):
@@ -196,8 +174,6 @@ class HostEventLog(models.Model):
     status = models.CharField(max_length=32,
     choices=HostEventStatus.STATUS_CHOICES)
 
-    class Meta:
-        db_table = '"serviceindex"."hosteventlog"'
 
 class LogEntry(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -208,8 +184,6 @@ class LogEntry(models.Model):
     event = models.ForeignKey(Event, blank=True, null=True, on_delete=models.CASCADE,)
     msg = models.CharField(max_length=1024)
 
-    class Meta:
-        db_table = '"serviceindex"."logentry"'
 
 # FORMS
 
