@@ -1,3 +1,6 @@
+v2.6.1 2026-01-09 jlambnertson
+- updated user search path for postgres sschema
+
 v2.6.0 2026-01 jlambertson
 - Updating Django tables over to the serviceindex schema
 - upgrading Django to 5.2 as well as django-allauth
