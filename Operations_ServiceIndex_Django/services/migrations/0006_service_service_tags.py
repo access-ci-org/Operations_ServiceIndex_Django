@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('services', '0005_logentry_event_logentry_host_logentry_staff_and_more'),
+        ("services", "0005_logentry_event_logentry_host_logentry_staff_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='service',
-            name='service_tags',
+            model_name="service",
+            name="service_tags",
             field=models.CharField(blank=True, max_length=256, null=True),
         ),
     ]

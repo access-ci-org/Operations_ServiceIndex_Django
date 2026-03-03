@@ -60,6 +60,7 @@ coverage.xml
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+migrate_services_schema.sql
 
 # Flask stuff:
 instance/

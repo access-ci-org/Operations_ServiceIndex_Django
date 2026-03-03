@@ -1,6 +1,8 @@
 # myapp/context_processors.py
-from .models import Misc_urls
 from django.conf import settings
+
+from .models import Misc_urls
+
 
 def misc_urls_processor(request):
     # Create a dictionary to hold the URL mappings
@@ -14,11 +16,10 @@ def misc_urls_processor(request):
         url_mapping[entry.name] = entry.urls
 
     # Return the dictionary so it can be accessed in templates
-    return {
-        'MISC_URLS': url_mapping
-    }
+    return {"MISC_URLS": url_mapping}
+
 
 def app_context_processor(request):
     return {
-        'APP_NAME': getattr(settings, 'APP_NAME', 'Unknown App'),
+        "APP_NAME": getattr(settings, "APP_NAME", "Unknown App"),
     }

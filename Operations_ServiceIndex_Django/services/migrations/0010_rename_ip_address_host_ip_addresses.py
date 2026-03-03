@@ -6,13 +6,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('services', '0009_alter_host_ip_address'),
+        ("services", "0009_alter_host_ip_address"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='host',
-            old_name='ip_address',
-            new_name='ip_addresses',
+            model_name="host",
+            old_name="ip_address",
+            new_name="ip_addresses",
         ),
     ]

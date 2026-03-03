@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('services', '0007_host_host_tags'),
+        ("services", "0007_host_host_tags"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='editlock',
-            name='username',
+            model_name="editlock",
+            name="username",
             field=models.CharField(max_length=25),
         ),
         migrations.AlterField(
-            model_name='hosteventlog',
-            name='username',
+            model_name="hosteventlog",
+            name="username",
             field=models.CharField(max_length=25),
         ),
         migrations.AlterField(
-            model_name='logentry',
-            name='username',
+            model_name="logentry",
+            name="username",
             field=models.CharField(max_length=25),
         ),
     ]

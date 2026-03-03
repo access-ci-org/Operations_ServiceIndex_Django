@@ -1,0 +1,357 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Git tag to deploy (e.g., v2.8.0)'
+        required: true
+        type: string
+      skip_backup:
+        description: 'Skip pre-deployment backup'
+        required: false
+        type: boolean
+        default: false
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  validate-tag:
+    name: Validate Release Tag
+    runs-on: self-hosted
+    outputs:
+      tag: ${{ steps.validate.outputs.tag }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: access-ci-org/Operations_ServiceIndex_Django
+          fetch-depth: 0  # Fetch all history and tags
+
+      - name: Validate tag exists
+        id: validate
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ inputs.version_tag }}"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+          
+          # Check if tag exists
+          if ! git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "❌ Tag '$TAG' does not exist!"
+            echo "Available tags:"
+            git tag -l | tail -10
+            exit 1
+          fi
+          
+          # Validate tag format (semantic versioning)
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "⚠️  Warning: Tag '$TAG' doesn't follow semantic versioning (vX.Y.Z)"
+            echo "Proceeding anyway..."
+          fi
+
+          # Guardrail: tag must be contained in the main branch
+          git fetch origin main --quiet
+          if ! git merge-base --is-ancestor "$TAG" "origin/main"; then
+            echo "❌ Tag '$TAG' is not reachable from the main branch."
+            echo "Only tags created from main are allowed for production deploys."
+            exit 1
+          fi
+          
+          echo "✅ Tag '$TAG' is valid and based on main"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Get tag info
+        run: |
+          TAG="${{ steps.validate.outputs.tag }}"
+          echo "## Release Information" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag**: $TAG" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Commit Details" >> $GITHUB_STEP_SUMMARY
+          git show --no-patch --format="- **Commit**: %H%n- **Author**: %an (%ae)%n- **Date**: %ai%n- **Message**: %s" $TAG >> $GITHUB_STEP_SUMMARY
+
+  create-release:
+    name: Create GitHub Release
+    needs: validate-tag
+    runs-on: self-hosted
+
+    steps:
+      - name: Create release from tag
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.validate-tag.outputs.tag }}
+          generate_release_notes: true
+
+  pre-deployment-checks:
+    name: Pre-Deployment Checks
+    needs: [validate-tag, create-release]
+    runs-on: [self-hosted, linux, deployment, serviceindex]
+    
+    steps:
+      - name: Checkout Infrastructure Repository  
+        uses: actions/checkout@v4
+        with:
+          repository: access-ci-org/Operations_ServiceIndex_Infrastructure
+          path: infrastructure
+
+      - name: Check production server health
+        run: |
+          echo "Checking production server accessibility..."
+          # Uses /home/accessops-aws-root.pem that github-runner can access
+          ssh -o StrictHostKeyChecking=no \
+              ubuntu@service-index.operations.access-ci.org \
+              "echo '✅ Production server is accessible'"
+
+      - name: Check current deployment
+        run: |
+          echo "Current deployment information:"
+          
+          CURRENT_VERSION=$(ssh \
+            ubuntu@service-index.operations.access-ci.org \
+            "readlink -f /soft/serviceindex-1.0/PROD | xargs basename" || echo "unknown")
+          
+          echo "Currently deployed version: $CURRENT_VERSION"
+          echo "Deploying version: ${{ needs.validate-tag.outputs.tag }}"
+          
+          echo "**Current Version**: $CURRENT_VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "**New Version**: ${{ needs.validate-tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Verify Ansible connectivity
+        working-directory: infrastructure/ansible
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: 'False'
+        run: |
+          # Uses /home/accessops-aws-root.pem via hosts file configuration
+          ansible \
+            -i hosts \
+            service-index.operations.access-ci.org \
+            -m ping
+
+  deploy-production:
+    name: Deploy to Production
+    needs: [validate-tag, pre-deployment-checks]
+    runs-on: [self-hosted, linux, deployment, serviceindex]
+    environment:
+      name: production
+      url: https://service-index.operations.access-ci.org
+    
+    steps:
+      - name: Deployment initiated
+        run: |
+          echo "🚀 Starting production deployment..."
+          echo "Version: ${{ needs.validate-tag.outputs.tag }}"
+          echo "Initiated by: ${{ github.actor }}"
+          echo "Run ID: ${{ github.run_id }}"
+
+      - name: Checkout Django Application at Tag
+        uses: actions/checkout@v4
+        with:
+          repository: access-ci-org/Operations_ServiceIndex_Django
+          ref: ${{ needs.validate-tag.outputs.tag }}
+          path: django-app
+
+      - name: Checkout Infrastructure Repository  
+        uses: actions/checkout@v4
+        with:
+          repository: access-ci-org/Operations_ServiceIndex_Infrastructure
+          path: infrastructure
+
+      - name: Create backup (optional)
+        if: ${{ !inputs.skip_backup }}
+        run: |
+          echo "Creating pre-deployment backup..."
+          
+          BACKUP_DIR="/soft/backups/$(date +%Y%m%d-%H%M%S)-pre-${{ needs.validate-tag.outputs.tag }}"
+          
+          ssh ubuntu@service-index.operations.access-ci.org \
+            "sudo mkdir -p /soft/backups && \
+             sudo cp -r /soft/serviceindex-1.0/PROD $BACKUP_DIR && \
+             echo 'Backup created at: $BACKUP_DIR'"
+
+      - name: Run Ansible Deployment
+        working-directory: infrastructure/ansible
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: 'False'
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          echo "Deploying version ${{ needs.validate-tag.outputs.tag }} to production..."
+          
+          ansible-playbook \
+            -i hosts \
+            application_playbook.yml \
+            --limit=service-index.operations.access-ci.org \
+            -e "app_tag=${{ needs.validate-tag.outputs.tag }}" \
+            -vv \
+            || { echo "❌ Production deployment failed!"; exit 1; }
+
+      - name: Run database migrations
+        run: |
+          echo "Running database migrations..."
+          
+          ssh ubuntu@service-index.operations.access-ci.org \
+            "cd /soft/serviceindex-1.0 && \
+             sudo -u software ./sbin/manage.prod.sh migrate --noinput"
+
+      - name: Collect static files
+        run: |
+          echo "Collecting static files..."
+          
+          ssh ubuntu@service-index.operations.access-ci.org \
+            "cd /soft/serviceindex-1.0 && \
+             sudo -u software ./sbin/manage.prod.sh collectstatic --noinput"
+
+      - name: Restart application service
+        run: |
+          echo "Restarting application service..."
+          
+          ssh ubuntu@service-index.operations.access-ci.org \
+            "sudo systemctl restart serviceindex.service && \
+             sleep 5 && \
+             sudo systemctl status serviceindex.service"
+
+      - name: Verify deployment
+        id: verify
+        run: |
+          echo "Waiting for service to be ready..."
+          sleep 15
+          
+          # Check service status
+          SERVICE_STATUS=$(ssh ubuntu@service-index.operations.access-ci.org \
+            "systemctl is-active serviceindex.service" || echo "failed")
+          
+          echo "Service status: $SERVICE_STATUS"
+          
+          if [[ "$SERVICE_STATUS" != "active" ]]; then
+            echo "❌ Service is not active!"
+            exit 1
+          fi
+          
+          # Check HTTP response
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -k https://service-index.operations.access-ci.org \
+            --max-time 30 || echo "000")
+          
+          echo "HTTP response: $HTTP_CODE"
+          
+          if [[ "$HTTP_CODE" =~ ^(200|301|302)$ ]]; then
+            echo "✅ Service is responding correctly (HTTP $HTTP_CODE)"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️  Unexpected HTTP code: $HTTP_CODE"
+            echo "status=warning" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "## 🚀 Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Environment** | Production |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Target Host** | service-index.operations.access-ci.org |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Version** | ${{ needs.validate-tag.outputs.tag }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Deployed By** | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Deployment Status** | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Verification** | ${{ steps.verify.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### URL" >> $GITHUB_STEP_SUMMARY
+          echo "https://service-index.operations.access-ci.org" >> $GITHUB_STEP_SUMMARY
+
+  post-deployment-tests:
+    name: Post-Deployment Smoke Tests
+    needs: [validate-tag, deploy-production]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Test production endpoints
+        run: |
+          echo "Running smoke tests on production..."
+          
+          # Test main page
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -k https://service-index.operations.access-ci.org \
+            --max-time 30)
+          
+          echo "Main page HTTP code: $HTTP_CODE"
+          
+          if [[ "$HTTP_CODE" =~ ^(200|301|302)$ ]]; then
+            echo "✅ Main page is accessible"
+          else
+            echo "⚠️  Unexpected response from main page"
+          fi
+
+  notify-success:
+    name: Notify Success
+    needs: [validate-tag, deploy-production, post-deployment-tests]
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+      - name: Success notification
+        run: |
+          echo "✅ Production deployment successful!"
+          echo "Version ${{ needs.validate-tag.outputs.tag }} is now live"
+          echo "URL: https://service-index.operations.access-ci.org"
+
+  rollback-on-failure:
+    name: Rollback Instructions
+    needs: [validate-tag, deploy-production]
+    runs-on: ubuntu-latest
+    if: failure()
+    
+    steps:
+      - name: Rollback instructions
+        run: |
+          echo "## ❌ Production Deployment Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Rollback Instructions" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To rollback to the previous version:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Go to [Actions](/${{ github.repository }}/actions/workflows/deploy-production.yml)" >> $GITHUB_STEP_SUMMARY
+          echo "2. Click 'Run workflow'" >> $GITHUB_STEP_SUMMARY
+          echo "3. Select the previous stable tag" >> $GITHUB_STEP_SUMMARY
+          echo "4. Click 'Run workflow'" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Manual Rollback" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "# SSH into production server" >> $GITHUB_STEP_SUMMARY
+          echo "ssh ubuntu@service-index.operations.access-ci.org" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Check available versions" >> $GITHUB_STEP_SUMMARY
+          echo "ls -la /soft/serviceindex-1.0/tags/" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Rollback to previous version" >> $GITHUB_STEP_SUMMARY
+          echo "sudo -u software ln -sfn /soft/serviceindex-1.0/tags/v2.7.0 /soft/serviceindex-1.0/PROD" >> $GITHUB_STEP_SUMMARY
+          echo "sudo systemctl restart serviceindex.service" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      # Optional: Slack notification
+      # - name: Slack Notification
+      #   if: env.SLACK_WEBHOOK_URL != ''
+      #   uses: slackapi/slack-github-action@v1
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "❌ Production deployment FAILED",
+      #         "blocks": [
+      #           {
+      #             "type": "section",
+      #             "text": {
+      #               "type": "mrkdwn",
+      #               "text": "*Production Deployment Failed*\n*Version:* ${{ needs.validate-tag.outputs.tag }}\n*Initiated by:* ${{ github.actor }}\n*Workflow:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n:rotating_light: *ROLLBACK REQUIRED* :rotating_light:"
+      #             }
+      #           }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

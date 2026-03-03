@@ -1,0 +1,12 @@
+# CODEOWNERS
+# Requires review from designated owners before PRs touching these paths can merge.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# CI/CD workflow files require review from the pipeline maintainer
+.github/workflows/ @jyssy @jpnavarro @ericblau
+
+# Deployment and infrastructure configuration
+.github/ @jyssy @jpnavarro @ericblau
+
+# Protect this file itself - changes require owner approval
+.github/CODEOWNERS @jyssy @jpnavarro @ericblau
