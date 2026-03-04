@@ -121,19 +121,26 @@ jobs:
         working-directory: infrastructure/ansible
         env:
           ANSIBLE_HOST_KEY_CHECKING: 'False'
-          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
         run: |
           # For dev/beta deployments, we deploy from the current branch
           # Ansible will clone the repo at the specified commit
           
+          # Create vault password file
+          echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > /tmp/vault_pass.txt
+          chmod 600 /tmp/vault_pass.txt
+          
           ansible-playbook \
             -i hosts \
             application_playbook.yml \
+            --vault-password-file=/tmp/vault_pass.txt \
             --limit=${{ needs.determine-environment.outputs.target_host }} \
             -e "app_tag=${{ github.ref_name }}" \
             -e "git_version=${{ steps.commit.outputs.sha }}" \
             -vv \
-            || { echo "❌ Deployment failed"; exit 1; }
+            || { echo "❌ Deployment failed"; rm -f /tmp/vault_pass.txt; exit 1; }
+          
+          # Clean up vault password file
+          rm -f /tmp/vault_pass.txt
 
       - name: Verify deployment
         run: |
