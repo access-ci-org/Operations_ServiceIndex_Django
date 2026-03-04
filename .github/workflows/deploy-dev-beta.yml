@@ -72,7 +72,7 @@ jobs:
         with:
           repository: access-ci-org/Operations_ServiceIndex_Infrastructure
           path: infrastructure
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.INFRASTRUCTURE_REPO_TOKEN }}
 
       - name: Get commit info
         id: commit
