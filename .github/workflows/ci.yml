@@ -3,11 +3,12 @@ name: CI - Tests and Quality Checks
 on:
   pull_request:
     branches:
-      - '**'
+      - develop
+      - beta
+      - main
   push:
     branches:
       - develop
-      - staging
       - beta
       - main
 
