@@ -74,17 +74,21 @@ jobs:
         working-directory: infrastructure/ansible
         env:
           ANSIBLE_HOST_KEY_CHECKING: 'False'
-          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
         run: |
+          echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > /tmp/vault_pass.txt
+          chmod 600 /tmp/vault_pass.txt
+
           ansible-playbook \
             -i hosts \
             application_playbook.yml \
-            --vault-password-file=<(printf '%s' "$ANSIBLE_VAULT_PASSWORD") \
+            --vault-password-file=/tmp/vault_pass.txt \
             --limit=dev-index.operations.access-ci.org \
             -e "app_tag=${{ github.ref_name }}" \
             -e "git_version=${{ steps.commit.outputs.sha }}" \
             -vv \
-            || { echo "Deployment failed"; exit 1; }
+            || { echo "Deployment failed"; rm -f /tmp/vault_pass.txt; exit 1; }
+
+          rm -f /tmp/vault_pass.txt
 
       - name: Verify deployment
         run: |
