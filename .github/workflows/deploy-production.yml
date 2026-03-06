@@ -188,6 +188,7 @@ jobs:
           ansible-playbook \
             -i hosts \
             application_playbook.yml \
+            --vault-password-file=<(printf '%s' "$ANSIBLE_VAULT_PASSWORD") \
             --limit=service-index.operations.access-ci.org \
             -e "app_tag=${{ needs.validate-tag.outputs.tag }}" \
             -vv \
