@@ -28,6 +28,8 @@ try:
     with open(os.environ["APP_CONFIG"], "r") as file:
         conf = file.read()
     CONF = json.loads(conf)
+    if "API_KEY" in CONF and CONF["API_KEY"]:
+        os.environ["API_KEY"] = CONF["API_KEY"]
 except (ValueError, IOError) as e:
     print("Failed to load APP_CONFIG={}".format(os.environ["APP_CONFIG"]))
     raise
