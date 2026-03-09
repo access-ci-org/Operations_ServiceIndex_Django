@@ -1,3 +1,8 @@
+v2.7.1 2026-03 jlambertson
+- updating regex string handling in urls.py with raw string prefix for regex patterns
+- ran formatting changes over code cleaning it up - adding consistency in double quoting etc (Black, isort)
+- fixed XSS vulnerability in services/models.py by replacing mark_safe() with format_html() - helped with Claude Sonnet 4.5, ChatGPT 5.2, 5.2 Codex, and 5.3 Codex
+
 v2.7.0 2026-01-13 jlambnertson
 - updating migration files and models to reflect current schema owners and search path defaults
 
@@ -10,7 +15,7 @@ v2.6.0 2026-01 jlambertson
 
 v2.5.1 2025-10-27 jlambertson
 
-- adding new release for the. tag
+- adding new release for the tag
 
 v2.5.0 2025-10-24 jlambertson
 

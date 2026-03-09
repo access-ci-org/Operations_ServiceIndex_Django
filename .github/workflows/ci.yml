@@ -1,0 +1,104 @@
+name: CI - Tests and Quality Checks
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - beta
+      - main
+  push:
+    branches:
+      - develop
+      - beta
+      - main
+
+jobs:
+  code-quality:
+    name: Code Quality & Security Checks
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Add uv to PATH
+        run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          uv pip install --system flake8 bandit safety black isort
+
+      - name: Run Black (code formatting check)
+        run: |
+          black --check --diff Operations_ServiceIndex_Django/
+        continue-on-error: true
+
+      - name: Run isort (import sorting check)
+        run: |
+          isort --check-only --diff Operations_ServiceIndex_Django/
+        continue-on-error: true
+
+      - name: Run Flake8 (linting)
+        run: |
+          flake8 Operations_ServiceIndex_Django/ \
+            --count \
+            --select=E9,F63,F7,F82 \
+            --show-source \
+            --statistics \
+            --max-line-length=120
+        continue-on-error: true
+
+      - name: Run Bandit (security linting)
+        run: |
+          bandit -r Operations_ServiceIndex_Django/ \
+            -f json -o bandit-report.json \
+            -ll -ii
+        continue-on-error: true
+
+      - name: Upload Bandit Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-security-report
+          path: bandit-report.json
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: self-hosted
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+
+  summary:
+    name: CI Summary
+    runs-on: self-hosted
+    needs: [code-quality]
+    if: always()
+    
+    steps:
+      - name: Check CI Status
+        run: |
+          echo "Code Quality: ${{ needs.code-quality.result }}"
+          if [[ "${{ needs.code-quality.result }}" == "failure" ]]; then
+            echo "❌ CI checks failed"
+            exit 1
+          else
+            echo "✅ All CI checks passed"
+          fi

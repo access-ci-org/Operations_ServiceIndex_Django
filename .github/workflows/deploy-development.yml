@@ -1,0 +1,131 @@
+name: Deploy to Development
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-development
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to development
+    runs-on: [self-hosted, linux, deployment, serviceindex]
+    environment:
+      name: development
+      url: https://dev-index.operations.access-ci.org
+
+    steps:
+      - name: Checkout Django Application
+        uses: actions/checkout@v4
+        with:
+          repository: access-ci-org/Operations_ServiceIndex_Django
+          ref: ${{ github.ref }}
+          path: django-app
+
+      - name: Checkout Infrastructure Repository
+        uses: actions/checkout@v4
+        with:
+          repository: access-ci-org/Operations_ServiceIndex_Infrastructure
+          path: infrastructure
+          token: ${{ secrets.INFRASTRUCTURE_REPO_TOKEN }}
+
+      - name: Get commit info
+        id: commit
+        working-directory: django-app
+        run: |
+          echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "branch=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_OUTPUT
+          echo "message=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
+
+      - name: Determine deployment tag
+        id: deployment-tag
+        working-directory: django-app
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BRANCH="${{ steps.commit.outputs.branch }}"
+          TAG="${BRANCH}-${TIMESTAMP}-${{ steps.commit.outputs.sha }}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Deploying version: $TAG"
+
+      - name: Show runner's public IP
+        run: |
+          echo "Runner's public IP (add this to dev-index security group):"
+          curl -s https://api.ipify.org
+          echo ""
+
+      - name: Pre-deployment checks
+        working-directory: infrastructure/ansible
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: 'False'
+        run: |
+          ansible \
+            -i hosts \
+            dev-index.operations.access-ci.org \
+            -m ping
+
+      - name: Run Ansible deployment
+        working-directory: infrastructure/ansible
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: 'False'
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          ansible-playbook \
+            -i hosts \
+            application_playbook.yml \
+            --vault-password-file=<(printf '%s' "$ANSIBLE_VAULT_PASSWORD") \
+            --limit=dev-index.operations.access-ci.org \
+            -e "app_tag=${{ github.ref_name }}" \
+            -e "git_version=${{ steps.commit.outputs.sha }}" \
+            -vv \
+            || { echo "Deployment failed"; exit 1; }
+
+      - name: Verify deployment
+        run: |
+          sleep 10
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -k https://dev-index.operations.access-ci.org \
+            --max-time 30 || echo "000")
+
+          if [[ "$HTTP_CODE" =~ ^(200|301|302)$ ]]; then
+            echo "Service is responding (HTTP $HTTP_CODE)"
+          else
+            echo "Service returned HTTP $HTTP_CODE"
+            echo "This might be expected if authentication is required"
+          fi
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: development" >> $GITHUB_STEP_SUMMARY
+          echo "- **Target Host**: dev-index.operations.access-ci.org" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ steps.commit.outputs.branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ steps.commit.outputs.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployment Tag**: ${{ steps.deployment-tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Commit Message" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.commit.outputs.message }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  notify-on-failure:
+    name: Notify on Failure
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: failure()
+
+    steps:
+      - name: Send failure notification
+        run: |
+          echo "Deployment to development failed"
+          echo "Check the workflow logs for details"

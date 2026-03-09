@@ -6,16 +6,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('services', '0010_rename_ip_address_host_ip_addresses'),
+        ("services", "0010_rename_ip_address_host_ip_addresses"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Misc_urls',
+            name="Misc_urls",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50)),
-                ('urls', models.URLField(max_length=512)),
-            ]
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=50)),
+                ("urls", models.URLField(max_length=512)),
+            ],
         ),
     ]

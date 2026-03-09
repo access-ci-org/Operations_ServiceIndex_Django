@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('services', '0001_initial'),
+        ("services", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='host',
-            name='syslog_relp_10515',
+            model_name="host",
+            name="syslog_relp_10515",
             field=models.BooleanField(null=True),
         ),
         migrations.AddField(
-            model_name='host',
-            name='syslog_standard_10514',
+            model_name="host",
+            name="syslog_standard_10514",
             field=models.BooleanField(null=True),
         ),
         migrations.AlterField(
-            model_name='host',
-            name='nagios',
+            model_name="host",
+            name="nagios",
             field=models.BooleanField(null=True),
         ),
         migrations.AlterField(
-            model_name='host',
-            name='qualys',
+            model_name="host",
+            name="qualys",
             field=models.BooleanField(null=True),
         ),
     ]
