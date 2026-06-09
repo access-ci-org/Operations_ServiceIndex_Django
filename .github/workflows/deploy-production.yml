@@ -28,7 +28,7 @@ jobs:
       
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: access-ci-org/Operations_ServiceIndex_Django
           fetch-depth: 0  # Fetch all history and tags
@@ -98,7 +98,7 @@ jobs:
     
     steps:
       - name: Checkout Infrastructure Repository  
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: access-ci-org/Operations_ServiceIndex_Infrastructure
           path: infrastructure
@@ -154,14 +154,14 @@ jobs:
           echo "Run ID: ${{ github.run_id }}"
 
       - name: Checkout Django Application at Tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: access-ci-org/Operations_ServiceIndex_Django
           ref: ${{ needs.validate-tag.outputs.tag }}
           path: django-app
 
       - name: Checkout Infrastructure Repository  
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: access-ci-org/Operations_ServiceIndex_Infrastructure
           path: infrastructure
