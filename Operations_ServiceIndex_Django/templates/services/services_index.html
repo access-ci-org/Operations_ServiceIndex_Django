@@ -36,20 +36,20 @@
     {% for s in services %}
     <div class="card accordion-item">
         <div class="card-header" style="padding:0px">
-            <h5 class="accordion-header mb-0" id="heading-{{ s.service.name|slugify }}">
+            <h2 class="accordion-header mb-0" id="heading-{{ s.service.name|slugify }}">
                 <button class="accordion-button {% if not expand_all %}collapsed{% endif %} w-100" type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapse-{{ s.service.name|slugify }}"
                     aria-expanded="{% if expand_all %}true{% else %}false{% endif %}"
                     aria-controls="collapse-{{ s.service.name|slugify }}">
                     {% if s.service.deprecated %}
-                    <del style="color:#ccc;">&nbsp;{{ s.service.name }}</del>
-                    <small style="color:#d9534f;">DEPRECATED</small>
+                    <del class="text-access-muted">&nbsp;{{ s.service.name }}</del>
+                    <small class="text-access-danger">DEPRECATED</small>
                     {% else %}
                     &nbsp;{{ s.service.name }}
                     {% endif %}
                 </button>
-            </h5>
+            </h2>
         </div>
 
         <div id="collapse-{{ s.service.name|slugify }}"
@@ -60,7 +60,9 @@
             data-bs-parent="#services-accordion">
 -->
             <div class="card-body">
-                <h4>{{ s.service.description }}</h4>
+                {% if s.service.description %}
+                <p class="h4">{{ s.service.description }}</p>
+                {% endif %}
                 <div class="card card-sm">
                     <div class="card-body" style="background-color: #f5f5f5">
                         <strong>Hostname: </strong>{{ s.service.hostname }}<br />
@@ -93,7 +95,7 @@
                     </div> <!-- card body -->
                 </div> <!-- card -->
 
-                </br><h6>LINKS:</h6>
+                </br><p class="fw-bold mb-2">LINKS:</p>
                 <div class="row">
                     <div class="col-md-10">
                         <ul>
@@ -105,7 +107,7 @@
                     </div>
                 </div> <!-- row -->
                 
-                </br><h6>HOSTS:</h6>
+                </br><p class="fw-bold mb-2">HOSTS:</p>
                 {% for h in s.hosts %}
                 <div class="card">
                     <div class="card-header">
@@ -183,7 +185,7 @@
                 </div> <!-- row -->
                 {% endif %}
                 
-                </br><h6>LOG (UTC):</h6>
+                </br><p class="fw-bold mb-2">LOG (UTC):</p>
                 <div class="row">
                     <div class="col-md-12">
                         <p style="font-size: 12px">

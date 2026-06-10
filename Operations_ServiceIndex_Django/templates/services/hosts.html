@@ -5,7 +5,7 @@
 
 {% block content %}
 
-<table class="table table-striped">
+<table class="table table-striped" aria-label="Hosts">
     <thead>
     <tr>
         <th><a href="{% url 'services:hosts' 'hostname' %}">HOSTNAME
@@ -41,8 +41,8 @@
                     {%if serv.deprecated == False %}
                         {{serv.name}}
                     {% else %}
-                        <span style="color:#a9a9a9"><del> * {{serv.name}} * </del></span>
-                        <small style="color:#d9534f;">DEPRECATED</small>
+                        <span class="text-access-muted"><del> * {{serv.name}} * </del></span>
+                        <small class="text-access-danger">DEPRECATED</small>
                     {% endif %}
                 {% endfor %}
 

@@ -45,7 +45,7 @@
             {% endif %}
         </div>
         {% if field.errors %}
-            <span class="error" style="color:#d9534f;">
+            <span class="error text-access-danger">
                 {{ field.errors.0 }}</span>
         {% endif %}
     </div>
@@ -76,7 +76,7 @@
                     {% endif %}
                 </div>
                 {% if lform.url.errors %}
-                    <span class="error" style="color:#d9534f;">
+                    <span class="error text-access-danger">
                         {{ lform.url.errors.0 }}</span>
                 {% endif %}
             </div>
@@ -94,7 +94,7 @@
                     {% endif %}
                 </div>
                 {% if lform.description.errors %}
-                    <span class="error" style="color:#d9534f;">
+                    <span class="error text-access-danger">
                         {{ lform.description.errors.0 }}</span>
                 {% endif %}
             </div>
@@ -134,7 +134,7 @@
                     <label for="{{ hform.label.id_for_label }}" class="col-form-label">
                         Label:
                         {% if hform.label.errors %}
-                        <span style="color:#d9534f;">(Required)</span>
+                        <span class="text-access-danger">(Required)</span>
                         {% endif %}
                     </label>
                 </div>
@@ -167,7 +167,7 @@
         <div class="col-md-4">
             Select from existing:
             {% if hform.location.errors %}
-            <span style="color:#d9534f;">(Required)</span>
+            <span class="text-access-danger">(Required)</span>
             {% endif %}
             {{ hform.location }}
         </div>
@@ -235,7 +235,7 @@
             <label for="{{ hform.host_last_verified.id_for_label }}" class="col-form-label">
                 Host last verified:
                 {% if hform.host_last_verified.errors %}
-                <span style="color:#d9534f;">$$$${{hform.host_last_verified}}$$$</span>
+                <span class="text-access-danger">$$$${{hform.host_last_verified}}$$$</span>
                 {% endif %}
             </label>
         </div>
@@ -252,7 +252,7 @@
         <div class="col-md-4">
             Select from existing:
             {% if hform.sys_admin.errors %}
-            <span style="color:#d9534f;">(Required)</span>
+            <span class="text-access-danger">(Required)</span>
             {% endif %}
             {{ hform.sys_admin }}
         </div>
@@ -272,7 +272,7 @@
         <div class="col-md-4">
             Select from existing:
             {% if hform.poc_primary.errors %}
-            <span style="color:#d9534f;">(Required)</span>
+            <span class="text-access-danger">(Required)</span>
             {% endif %}
             {{ hform.poc_primary }}
         </div>
@@ -292,7 +292,7 @@
         <div class="col-md-4">
             Select from existing:
             {% if hform.poc_backup.errors %}
-            <span style="color:#d9534f;">(Required)</span>
+            <span class="text-access-danger">(Required)</span>
             {% endif %}
             {{ hform.poc_backup }}
         </div>

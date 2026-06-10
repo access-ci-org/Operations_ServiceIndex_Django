@@ -4,7 +4,9 @@
 
 {% block content %}
 
-<h1>{{ debug }}</h1>
+{% if debug %}
+<p>{{ debug }}</p>
+{% endif %}
 <form action="{% url 'services:metrics' %}" method="post">
     {% csrf_token %}
 
@@ -32,9 +34,9 @@
 <div style="height:30px;"></div>
 
 <div class="card text-left col-md-6">
-    <div class="card-header"><h5>{{ heading }}</h5></div>
+    <div class="card-header"><h2 class="h5 mb-0">{{ heading }}</h2></div>
     <div class="card-body">
-        <table class="table mb-0">
+        <table class="table mb-0" aria-label="Activity totals">
             <tr>
                 <th>Updates to Services</th>
                 <td style="text-align:right;">{{ updates }}</td>
@@ -58,9 +60,9 @@
 <div style="height:30px;"></div>
 
 <div class="card text-left col-md-6">
-    <div class="card-header"><h5>Current Totals</h5></div>
+    <div class="card-header"><h2 class="h5 mb-0">Current Totals</h2></div>
     <div class="card-body">
-        <table class="table mb-0">
+        <table class="table mb-0" aria-label="Current totals">
             <tr>
                 <th>Services</th>
                 <td style="text-align:right;">{{ total_services }}</td>
@@ -85,4 +87,3 @@ $(document).ready(function(){
 </script>
 
 {% endblock %}
-

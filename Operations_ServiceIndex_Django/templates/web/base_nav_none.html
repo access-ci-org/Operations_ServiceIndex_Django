@@ -18,10 +18,11 @@
 {{ block.super }}
 {% endblock %}
 
+<main id="main-content">
 {# Display django.contrib.messages as Bootstrap alerts #}
 {% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
-
 {% block content %}
 {% endblock %}
+</main>
 
 {% endblock %}

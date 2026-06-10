@@ -20,7 +20,7 @@
 {{ block.super }}
 {% endblock %}
 
-<div class="container-fluid mb-3">
+<nav class="container-fluid mb-3" aria-label="Service Index navigation">
     <div class="wh-tab-nav text-center">
         <span class="wh-tab-label">Navigation</span>
         <ul class="nav nav-tabs flex-wrap justify-content-center">
@@ -79,14 +79,13 @@
             {% endif %}Log Out ({{ user.username }})</a></li>
         </ul>
     </div>
-</div>
+</nav>
 
+<main class="container" id="main-content">
 {# Display django.contrib.messages as Bootstrap alerts #}
 {% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
-
-<div class="container" role="main">
 {% block content %}
 {% endblock %}
-</div> <!-- container -->
+</main> <!-- container -->
 
 {% endblock %}

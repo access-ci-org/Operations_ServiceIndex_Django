@@ -20,7 +20,7 @@
 {% block serviceindex_global_header %}
 <style media="screen" type="text/css"></style>
 
-<div class="container-fluid py-2">
+<header class="container-fluid py-2">
     <div class="p-3 mb-2 bg-header rounded-3">
         <table style="min-width: 100%">
             <tr style="vertical-align: top;">
@@ -29,14 +29,14 @@
                         <img src="/static/services/img/ACCS050322_ACCESS_Brand_Operations-RGB.png" alt="Home"></a>
                 </td>
                 <td style="vertical-align: top;">
-                    <h2 class="display-6 fw-bold">{% settings_value "APP_NAME" %}</h2>
+                    <h1 class="display-6 fw-bold">{% settings_value "APP_NAME" %}</h1>
                 </td>
-                <td style="vertical-align: bottom;"><a href="https://operations.access-ci.org/online_services/service_index" target="_blank">
-                    <span class="glyphicon glyphicon-info-sign text-dark" style="font-size:18px"></span></a>
+                <td style="vertical-align: bottom;"><a href="https://operations.access-ci.org/online_services/service_index" target="_blank" rel="noopener" aria-label="Service Index information">
+                    <span class="glyphicon glyphicon-info-sign text-dark" style="font-size:18px" aria-hidden="true"></span></a>
                 </td>
                 <td style="vertical-align: bottom;"><a class="text-dark" href="https://github.com/access-ci-org/Operations_ServiceIndex_Django" target="_blank">{% settings_value "APP_VERSION" %}</a></td>
             </tr>
         </table>
     </div>
-</div> <!-- container-fluid -->
+</header> <!-- container-fluid -->
 {% endblock %}
