@@ -1,3 +1,6 @@
+v2.7.4 2026-06-11 jlambertson
+  - ran some pa11y-ci checks over service index templates to increase contrast and add more explicit section labeling
+
 v2.7.3 2026-06-11 jlambertson
   - applying tab nav change to base nav full
   - testing github actions again
