@@ -81,10 +81,12 @@ SITE_ID = 1
 # }
 
 ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_ADAPTER = "services.adapters.ClosedLocalSignupAdapter"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/cilogon/login/"
 LOGIN_URL = "/accounts/cilogon/login/"
 LOGIN_REDIRECT_URL = "/services/login"
-# SOCIALACCOUNT_ADAPTER = 'services.views.MySocialAccountAdapter'
+SOCIALACCOUNT_ADAPTER = "services.adapters.CILogonSignupAdapter"
+SOCIALACCOUNT_ONLY = True
 # SOCIALACCOUNT_STORE_TOKENS = True
 
 MIDDLEWARE = [
