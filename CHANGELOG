@@ -1,3 +1,6 @@
+v2.7.6 2026-07-29 jlambertson
+- removing signup pathway to social only (except admin login)
+
 v2.7.5 2026-06-11 jlambertson
  - changing navigation wording
 
