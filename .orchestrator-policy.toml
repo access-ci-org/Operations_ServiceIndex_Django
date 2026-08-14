@@ -1,0 +1,2 @@
+[model_egress]
+classification = "remote-approved"
