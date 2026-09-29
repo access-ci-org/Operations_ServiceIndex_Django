@@ -13,6 +13,9 @@ from zoneinfo import ZoneInfo
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf import settings
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import BasePermission, IsAuthenticated
 
 from services.models import *
 from services.serializers import *
@@ -31,6 +34,14 @@ def editors_check(user):
 
 def viewers_check(user):
     return user.groups.filter(name='editors').exists() or user.groups.filter(name='viewers').exists()
+
+class IsViewerOrEditor(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated
+            and request.user.is_active
+            and viewers_check(request.user)
+        )
 
 def unprivileged(request):
     return render(request, 'web/unprivileged.html')
@@ -656,7 +667,7 @@ def view_log(request):
     context = {'page': 'view_log', 'log': log, 'app_name': settings.APP_NAME}
     return render(request, 'services/view_log.html', context)
 
-# @login_required
+# #@login_required
 def login(request):
     remote_ip = request.META.get('HTTP_X_FORWARDED_FOR')
     if not remote_ip:
@@ -667,14 +678,14 @@ def login(request):
     make_log_entry(request.user.username, msg)
     return redirect(reverse('services:index'))
 
-# @login_required
+# #@login_required
 def clear_and_logout(request):
 #   Clear any locks by current user
     EditLock.objects.filter(username=request.user.username).delete()
 #   Standard logging handled in signals.py
     return redirect(reverse('account_logout'))
 
-# @login_required
+# #@login_required
 def edit_sorry(request):
     context = {'app_name': settings.APP_NAME}
     return render(request, 'web/edit_sorry.html', context)
@@ -810,8 +821,9 @@ def make_pdf(request):
     context = {'services':services}
     return do_pdf('services/services_for_pdf.html', context)
 
-@user_passes_test(viewers_check, login_url=reverse_lazy('services:unprivileged'))
-@login_required
+@api_view(['GET'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated, IsViewerOrEditor])
 def api_hosts(request):
     objects = Host.objects.all()
     serializer = Host_Serializer(objects, many=True)
