@@ -1,3 +1,6 @@
+v2.8.0 2026-09-29 jlambertson
+- adding BasicAuthentication to the hosts api for the ncsa service account user
+
 v2.7.6 2026-07-29 jlambertson
 - removing signup pathway to social only (except admin login)
 
