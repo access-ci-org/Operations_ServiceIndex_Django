@@ -19,7 +19,8 @@ Service Index has no media archive. Recovery uses only PostgreSQL backups.
 | Production pattern | django.serviceindex1.dump.EPOCH.gz |
 
 The normal workflow defaults to source serviceindex1 and target serviceindex2.
-Both remain overridable for deliberate operator use, and matching names are refused.
+Both remain overridable for deliberate operator use, but serviceindex1 is always a
+protected restore target and matching source/target names are also refused.
 
 Never print or commit application configuration, PostgreSQL password files, AWS
 credentials, or database dumps.
@@ -73,7 +74,7 @@ uv run database/serviceindex_db_retrieve.py -r
 
 The script downloads into database/dump/, decompresses gzip artifacts, detects
 plain SQL versus PostgreSQL custom format from their contents, and prints a
-dry-run restore command. Use the exact path printed as Dump ready:
+offline inspection command. Use the exact path printed as Dump ready:
 
 ~~~bash
 DUMP="database/dump/django.serviceindex1.dump.EPOCH.sql"
@@ -81,7 +82,19 @@ DUMP="database/dump/django.serviceindex1.dump.EPOCH.sql"
 
 The suffix may instead be .dump; use the path actually printed.
 
-Inspect the restore plan:
+Inspect the artifact offline first:
+
+~~~bash
+./database/pg_restore_serviceindex.sh \
+  --input "$DUMP" \
+  --inspect
+~~~
+
+Inspection validates the local artifact, identifies its format, and prints its
+SHA-256 digest without connecting to PostgreSQL. Confirm source serviceindex1,
+target serviceindex2, schema serviceindex_django, and the expected digest and format.
+
+Next, run the live read-only preflight against serviceindex2:
 
 ~~~bash
 ./database/pg_restore_serviceindex.sh \
@@ -89,9 +102,9 @@ Inspect the restore plan:
   --dry-run
 ~~~
 
-Dry run inspects the local artifact and prints its destructive scope without
-connecting to PostgreSQL. Confirm source serviceindex1, target serviceindex2,
-schema serviceindex_django, and the expected artifact format.
+Dry run authenticates both database roles and checks target ownership, active
+connections, schema ownership, and required privileges. It performs no GRANT,
+DROP, or restore command.
 
 Before a real restore, an authorized operator must:
 
@@ -107,28 +120,34 @@ Restore and automatically verify:
 
 ~~~bash
 ./database/pg_restore_serviceindex.sh \
-  --input "$DUMP"
+  --input "$DUMP" \
+  --execute \
+  --confirm-target serviceindex2
 ~~~
 
 The restore:
 
-1. Refuses matching source and target names.
+1. Unconditionally refuses serviceindex1 as a target and also refuses matching
+   source and target names.
 2. Rejects empty or unrecognized artifacts.
 3. Rejects database DDL and psql reconnect commands in plain SQL.
 4. Requires serviceindex_django in the artifact.
 5. Requires an existing target owned by the maintenance role.
 6. Refuses a target with other active client connections.
-7. Drops only serviceindex_django in the target.
-8. Restores as serviceindex_django.
-9. Runs verify_db.sh unless --no-verify is supplied.
+7. Requires the schema to be absent or owned by serviceindex_django.
+8. Requires both --execute and an exact --confirm-target value.
+9. Drops only serviceindex_django in the target transaction.
+10. Restores as serviceindex_django.
+11. Runs verify_db.sh unless --no-verify is supplied.
 
 Do not manually empty or drop serviceindex2 first. Plain-SQL restoration drops
 serviceindex_django inside the restore transaction before loading the dump.
 Custom-format restoration uses pg_restore clean mode. Database ownership,
 encoding, database-level grants, and unrelated schemas are preserved.
 
-A failure after schema removal can leave serviceindex2 without its application
-schema. Correct the failure and rerun the same complete artifact.
+Plain-SQL and custom-format restore failures roll back the schema replacement
+transaction. Connection loss at transaction commit leaves the final database
+state uncertain, so verify before retrying.
 
 If the process is forcibly killed after granting serviceindex_django temporary
 CREATE permission on serviceindex2, its EXIT cleanup cannot run. An authorized
@@ -136,6 +155,25 @@ operator must inspect the database privilege and revoke it if it was temporary.
 
 Migration execution is not part of restoration. Review migration state against
 the deployed application and obtain separate authorization before applying one.
+
+## Local pre-host integration test
+
+Before copying a release to a host, exercise a real artifact in a disposable local
+PostgreSQL cluster. This test starts no network listener and deletes its temporary
+cluster on exit:
+
+~~~bash
+./database/tests/test_restore_integration.sh \
+  --input database/dump/django.serviceindex1.dump.EPOCH.sql \
+  --postgres-bin /opt/homebrew/opt/postgresql@15/bin
+~~~
+
+The integration test runs offline inspection, proves the live dry run does not
+change either schema, performs the confirmed restore and normal verification,
+checks that an unrelated schema survives, and injects a restore error to prove
+transaction rollback and temporary-privilege cleanup. It never connects to RDS,
+S3, or a deployed application. The PostgreSQL major version should match the dump
+source when practical.
 
 ## Emergency live backup
 
@@ -203,6 +241,8 @@ Verification displays structural metadata and row counts, never row contents.
 - Dumping never uploads or applies retention.
 - Restore never drops or creates a database.
 - Restore never targets its declared source database.
+- Restore never targets the protected production database serviceindex1, even if
+  a different source name is supplied.
 - No script schedules itself.
 - No script runs migrations, starts or stops services, or deploys code.
 - Production scheduling, S3 upload, retention, and monitoring remain

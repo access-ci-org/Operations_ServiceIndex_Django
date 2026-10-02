@@ -28,6 +28,7 @@ PY
 
 SOURCE_DB="${RESTORE_SOURCE_DB:-serviceindex1}"
 TARGET_DB="${RESTORE_TARGET_DB:-serviceindex2}"
+PROTECTED_DB="serviceindex1"
 INPUT=""
 DB_USER="${DJANGO_USER:-$(load_config_value DJANGO_USER)}"
 DB_USER="${DB_USER:-serviceindex_django}"
@@ -43,11 +44,17 @@ DB_PORT="${DB_PORT:-$(load_config_value DB_PORT)}"
 DB_PORT="${DB_PORT:-5432}"
 DB_SSLMODE="${DB_SSLMODE:-$(load_config_value DB_SSLMODE)}"
 DB_SSLROOTCERT="${DB_SSLROOTCERT:-$(load_config_value DB_SSLROOTCERT)}"
+INSPECT_ONLY=0
 DRY_RUN=0
+EXECUTE=0
+CONFIRM_TARGET=""
 VERIFY_AFTER=1
 INPUT_FORMAT=""
+ARTIFACT_SHA256=""
 TEMP_LIST_FILE=""
 CREATE_GRANT_ADDED=0
+SCHEMA_OWNER=""
+APPLICATION_CAN_CREATE=""
 
 usage() {
     cat <<EOF
@@ -64,11 +71,16 @@ Options:
   --schema NAME             Application schema (default: serviceindex_django)
   --maintenance-user NAME   Existing target database owner (default: serviceindex_owner)
   --no-verify               Skip post-restore database verification
-  --dry-run                 Inspect the artifact and print the plan without connecting
+  --inspect                 Validate the artifact without connecting to PostgreSQL
+  --dry-run                 Run artifact checks and live read-only target preflight
+  --execute                 Perform the restore after repeating all preflight checks
+  --confirm-target NAME     Required with --execute; must equal the resolved target
   --help                    Show this help
 
-The script refuses source and target database names that match. It never creates,
-drops, or alters a database; it replaces only the application schema in the target.
+The script always refuses production database serviceindex1 and also refuses source
+and target database names that match. It never creates, drops, or alters a database;
+it replaces only the application schema in the target.
+Exactly one of --inspect, --dry-run, or --execute is required.
 EOF
 }
 
@@ -169,13 +181,11 @@ validate_custom_archive() {
     fi
 }
 
-preflight_and_remove_schema() {
+read_only_preflight() {
     local database_owner
-    local schema_owner
     local role_exists
     local application_connection
     local active_connections
-    local can_create
 
     database_owner="$(maintenance_query -c "SELECT pg_get_userbyid(datdba) FROM pg_database WHERE datname = current_database();")"
     if [[ "$database_owner" != "$MAINTENANCE_USER" ]]; then
@@ -210,33 +220,27 @@ WHERE datname = current_database()
         exit 1
     fi
 
-    schema_owner="$(maintenance_query -c "
+    SCHEMA_OWNER="$(maintenance_query -c "
 SELECT pg_get_userbyid(nspowner)
 FROM pg_namespace
 WHERE nspname = '${DB_SCHEMA}';
 ")"
-    if [[ -n "$schema_owner" && "$schema_owner" != "$MAINTENANCE_USER" && "$schema_owner" != "$DB_USER" ]]; then
-        echo "Schema '${DB_SCHEMA}' has unexpected owner '${schema_owner}'" >&2
+    if [[ -n "$SCHEMA_OWNER" && "$SCHEMA_OWNER" != "$DB_USER" ]]; then
+        echo "Schema '${DB_SCHEMA}' must be absent or owned by '${DB_USER}'" >&2
+        echo "Current owner: ${SCHEMA_OWNER}" >&2
         exit 1
     fi
 
-    can_create="$(maintenance_query -c "
+    APPLICATION_CAN_CREATE="$(maintenance_query -c "
 SELECT CASE WHEN has_database_privilege('${DB_USER}', current_database(), 'CREATE')
             THEN 't' ELSE 'f' END;
 ")"
-    if [[ "$can_create" != "t" ]]; then
+}
+
+prepare_restore_privileges() {
+    if [[ "$APPLICATION_CAN_CREATE" != "t" ]]; then
         maintenance_query -c "GRANT CREATE ON DATABASE \"${TARGET_DB}\" TO \"${DB_USER}\";" >/dev/null
         CREATE_GRANT_ADDED=1
-    fi
-
-    if [[ "$schema_owner" == "$MAINTENANCE_USER" ]]; then
-        echo "Removing maintenance-owned schema '${DB_SCHEMA}' from target '${TARGET_DB}'"
-        echo "A restore failure after this point can leave the target without its application schema."
-        maintenance_query -c "DROP SCHEMA \"${DB_SCHEMA}\" CASCADE;" >/dev/null
-    elif [[ "$schema_owner" == "$DB_USER" ]]; then
-        echo "Schema '${DB_SCHEMA}' will be replaced by the restore as ${DB_USER}"
-    else
-        echo "Schema '${DB_SCHEMA}' is absent and will be created by the restore"
     fi
 }
 
@@ -271,9 +275,22 @@ while [[ $# -gt 0 ]]; do
             VERIFY_AFTER=0
             shift
             ;;
+        --inspect)
+            INSPECT_ONLY=1
+            shift
+            ;;
         --dry-run)
             DRY_RUN=1
             shift
+            ;;
+        --execute)
+            EXECUTE=1
+            shift
+            ;;
+        --confirm-target)
+            [[ $# -ge 2 ]] || { echo "--confirm-target requires a value" >&2; exit 1; }
+            CONFIRM_TARGET="$2"
+            shift 2
             ;;
         --help|-h)
             usage
@@ -286,6 +303,12 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+MODE_COUNT=$((INSPECT_ONLY + DRY_RUN + EXECUTE))
+if [[ "$MODE_COUNT" -ne 1 ]]; then
+    echo "Exactly one of --inspect, --dry-run, or --execute is required" >&2
+    exit 1
+fi
 
 if [[ -z "$INPUT" ]]; then
     usage >&2
@@ -301,9 +324,24 @@ validate_identifier "$TARGET_DB" "target database"
 validate_identifier "$DB_USER" "application database user"
 validate_identifier "$DB_SCHEMA" "application schema"
 validate_identifier "$MAINTENANCE_USER" "maintenance user"
+if [[ -n "$CONFIRM_TARGET" ]]; then
+    validate_identifier "$CONFIRM_TARGET" "confirmed target database"
+fi
 
 if [[ "$TARGET_DB" == "$SOURCE_DB" ]]; then
     echo "Refusing to restore into source database '${SOURCE_DB}'" >&2
+    exit 1
+fi
+if [[ "$TARGET_DB" == "$PROTECTED_DB" ]]; then
+    echo "Refusing to restore into protected production database '${PROTECTED_DB}'" >&2
+    exit 1
+fi
+if [[ "$EXECUTE" -eq 1 && "$CONFIRM_TARGET" != "$TARGET_DB" ]]; then
+    echo "--execute requires --confirm-target '${TARGET_DB}'" >&2
+    exit 1
+fi
+if [[ "$EXECUTE" -ne 1 && -n "$CONFIRM_TARGET" ]]; then
+    echo "--confirm-target is only valid with --execute" >&2
     exit 1
 fi
 
@@ -313,6 +351,18 @@ if [[ "$INPUT_FORMAT" == "sql" ]]; then
 else
     validate_custom_archive
 fi
+
+ARTIFACT_SHA256="$(python3 - "$INPUT" <<'PY'
+import hashlib
+import sys
+
+digest = hashlib.sha256()
+with open(sys.argv[1], "rb") as artifact:
+    for chunk in iter(lambda: artifact.read(1024 * 1024), b""):
+        digest.update(chunk)
+print(digest.hexdigest())
+PY
+)"
 
 if [[ -n "$DB_SSLMODE" ]]; then
     export PGSSLMODE="$DB_SSLMODE"
@@ -327,22 +377,35 @@ echo "  source database:  ${SOURCE_DB}"
 echo "  target database:  ${TARGET_DB}"
 echo "  schema:           ${DB_SCHEMA}"
 echo "  format:           ${INPUT_FORMAT}"
+echo "  sha256:           ${ARTIFACT_SHA256}"
 echo "  host:             ${DB_HOST}:${DB_PORT}"
 echo "  application user: ${DB_USER}"
 echo "  maintenance user: ${MAINTENANCE_USER}"
 echo "  verify afterward: ${VERIFY_AFTER}"
 
-if [[ "$DRY_RUN" -eq 1 ]]; then
-    echo "Dry run only. Planned destructive scope:"
-    echo "  - require an existing target owned by ${MAINTENANCE_USER}"
-    echo "  - require zero other client connections to ${TARGET_DB}"
-    echo "  - drop only schema ${DB_SCHEMA} in ${TARGET_DB}"
-    echo "  - restore the validated artifact as ${DB_USER}"
-    echo "  - verify the restored schema unless --no-verify is supplied"
+if [[ "$INSPECT_ONLY" -eq 1 ]]; then
+    echo "Inspection passed. No PostgreSQL connection was made."
     exit 0
 fi
 
-preflight_and_remove_schema
+read_only_preflight
+
+echo "Live read-only preflight passed"
+echo "  database owner:          ${MAINTENANCE_USER}"
+echo "  current schema owner:    ${SCHEMA_OWNER:-<absent>}"
+echo "  application can CREATE:  ${APPLICATION_CAN_CREATE}"
+echo "  active client sessions:  0"
+echo "Planned destructive scope:"
+echo "  - drop only schema ${DB_SCHEMA} in ${TARGET_DB}"
+echo "  - restore the validated artifact as ${DB_USER}"
+echo "  - verify the restored schema unless --no-verify is supplied"
+
+if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "Dry run passed. No GRANT, DROP, or restore command was executed."
+    exit 0
+fi
+
+prepare_restore_privileges
 
 if [[ "$INPUT_FORMAT" == "custom" ]]; then
     RESTORE_CMD=(

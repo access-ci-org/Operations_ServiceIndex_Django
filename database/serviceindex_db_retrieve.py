@@ -168,7 +168,7 @@ def build_restore_command(
         source_database,
         "--target-db",
         target_database,
-        "--dry-run",
+        "--inspect",
     ]
     return " ".join(shlex.quote(part) for part in parts)
 
