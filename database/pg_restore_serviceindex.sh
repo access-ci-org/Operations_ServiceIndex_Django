@@ -148,16 +148,68 @@ detect_input_format() {
 }
 
 validate_plain_sql() {
-    if LC_ALL=C grep -Eiq '^[[:space:]]*\\(connect|c)([[:space:]]|$)' "$INPUT"; then
-        echo "Refusing SQL containing a psql database connection command" >&2
+    if ! LC_ALL=C awk '
+BEGIN {
+    state = 0
+    in_copy = 0
+    invalid = 0
+}
+state == 0 {
+    if ($0 ~ /^\\restrict [A-Za-z0-9]+$/) {
+        restrict_key = $0
+        sub(/^\\restrict /, "", restrict_key)
+        state = 1
+        next
+    }
+    if ($0 ~ /^[[:space:]]*$/ || $0 ~ /^--/) {
+        next
+    }
+    invalid = 1
+    exit
+}
+state == 2 {
+    if ($0 !~ /^[[:space:]]*$/) {
+        invalid = 1
+        exit
+    }
+    next
+}
+in_copy {
+    if ($0 == "\\.") {
+        in_copy = 0
+    }
+    next
+}
+/^[[:space:]]*COPY[[:space:]].*[[:space:]]FROM[[:space:]]stdin;[[:space:]]*$/ {
+    in_copy = 1
+    next
+}
+/^\\unrestrict [A-Za-z0-9]+$/ {
+    unrestrict_key = $0
+    sub(/^\\unrestrict /, "", unrestrict_key)
+    if (unrestrict_key != restrict_key) {
+        invalid = 1
+        exit
+    }
+    state = 2
+    next
+}
+index($0, "\\") {
+    invalid = 1
+    exit
+}
+END {
+    if (invalid || in_copy || state != 2) {
+        exit 1
+    }
+}
+' "$INPUT"; then
+        echo "Refusing SQL with unapproved or malformed psql meta-commands" >&2
+        printf '%s\n' 'Expected a matching alphanumeric \restrict/\unrestrict envelope and only COPY \. terminators' >&2
         exit 1
     fi
     if LC_ALL=C grep -Eiq '^[[:space:]]*(CREATE|DROP|ALTER)[[:space:]]+DATABASE([[:space:]]|;)' "$INPUT"; then
         echo "Refusing SQL containing database-level DDL" >&2
-        exit 1
-    fi
-    if LC_ALL=C grep -Eiq '^[[:space:]]*\\(copy|i|include|include_relative|ir|o|out|setenv|!|cd)([[:space:]]|$)' "$INPUT"; then
-        echo "Refusing SQL containing a local-file, shell, or output psql command" >&2
         exit 1
     fi
     if ! LC_ALL=C grep -Eiq "^[[:space:]]*CREATE[[:space:]]+SCHEMA([[:space:]]+IF[[:space:]]+NOT[[:space:]]+EXISTS)?[[:space:]]+\"?${DB_SCHEMA}\"?([[:space:]]|;)" "$INPUT"; then

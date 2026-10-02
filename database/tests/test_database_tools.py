@@ -150,10 +150,12 @@ class ShellToolTests(unittest.TestCase):
     def write_safe_dump(self, directory):
         dump = Path(directory) / "serviceindex.sql"
         dump.write_text(
+            "\\restrict TestKey123\n"
             "-- PostgreSQL database dump\n"
             "DROP SCHEMA IF EXISTS serviceindex_django CASCADE;\n"
             "CREATE SCHEMA serviceindex_django;\n"
-            "CREATE TABLE serviceindex_django.django_migrations (id bigint);\n",
+            "CREATE TABLE serviceindex_django.django_migrations (id bigint);\n"
+            "\\unrestrict TestKey123\n",
             encoding="utf-8",
         )
         return dump
@@ -277,8 +279,10 @@ class ShellToolTests(unittest.TestCase):
 
     def test_restore_rejects_plain_sql_reconnect(self):
         sql = (
+            "\\restrict TestKey123\n"
             "\\connect serviceindex1\n"
             "CREATE SCHEMA serviceindex_django;\n"
+            "\\unrestrict TestKey123\n"
         )
         with tempfile.TemporaryDirectory() as directory:
             dump = Path(directory) / "unsafe.sql"
@@ -294,12 +298,14 @@ class ShellToolTests(unittest.TestCase):
                 "--inspect",
             )
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("database connection command", result.stderr)
+        self.assertIn("unapproved or malformed psql meta-commands", result.stderr)
 
     def test_restore_rejects_plain_sql_local_include(self):
         sql = (
+            "\\restrict TestKey123\n"
             "\\include /tmp/operator-file.sql\n"
             "CREATE SCHEMA serviceindex_django;\n"
+            "\\unrestrict TestKey123\n"
         )
         with tempfile.TemporaryDirectory() as directory:
             dump = Path(directory) / "unsafe.sql"
@@ -315,12 +321,130 @@ class ShellToolTests(unittest.TestCase):
                 "--inspect",
             )
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("local-file", result.stderr)
+        self.assertIn("unapproved or malformed psql meta-commands", result.stderr)
+
+    def test_restore_rejects_psql_g_pipe(self):
+        sql = (
+            "\\restrict TestKey123\n"
+            "CREATE SCHEMA serviceindex_django;\n"
+            "SELECT current_database();\n"
+            "\\g | harmless-command\n"
+            "\\unrestrict TestKey123\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            dump = Path(directory) / "unsafe.sql"
+            dump.write_text(sql, encoding="utf-8")
+            result = self.run_tool(
+                "pg_restore_serviceindex.sh",
+                "--input",
+                str(dump),
+                "--inspect",
+            )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("unapproved or malformed psql meta-commands", result.stderr)
+
+    def test_restore_rejects_inline_psql_meta_command(self):
+        sql = (
+            "\\restrict TestKey123\n"
+            "CREATE SCHEMA serviceindex_django;\n"
+            "SELECT current_database() \\g\n"
+            "\\unrestrict TestKey123\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            dump = Path(directory) / "unsafe.sql"
+            dump.write_text(sql, encoding="utf-8")
+            result = self.run_tool(
+                "pg_restore_serviceindex.sh",
+                "--input",
+                str(dump),
+                "--inspect",
+            )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("unapproved or malformed psql meta-commands", result.stderr)
+
+    def test_restore_rejects_mismatched_restrict_key(self):
+        sql = (
+            "\\restrict FirstKey\n"
+            "CREATE SCHEMA serviceindex_django;\n"
+            "\\unrestrict OtherKey\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            dump = Path(directory) / "unsafe.sql"
+            dump.write_text(sql, encoding="utf-8")
+            result = self.run_tool(
+                "pg_restore_serviceindex.sh",
+                "--input",
+                str(dump),
+                "--inspect",
+            )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("unapproved or malformed psql meta-commands", result.stderr)
+
+    def test_restore_rejects_unrestrict_input_expansion(self):
+        sql = (
+            "\\restrict TestKey123\n"
+            "CREATE SCHEMA serviceindex_django;\n"
+            "\\unrestrict :InjectedKey\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            dump = Path(directory) / "unsafe.sql"
+            dump.write_text(sql, encoding="utf-8")
+            result = self.run_tool(
+                "pg_restore_serviceindex.sh",
+                "--input",
+                str(dump),
+                "--inspect",
+            )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("unapproved or malformed psql meta-commands", result.stderr)
+
+    def test_restore_rejects_content_after_unrestrict(self):
+        sql = (
+            "\\restrict TestKey123\n"
+            "CREATE SCHEMA serviceindex_django;\n"
+            "\\unrestrict TestKey123\n"
+            "SELECT current_database() \\g\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            dump = Path(directory) / "unsafe.sql"
+            dump.write_text(sql, encoding="utf-8")
+            result = self.run_tool(
+                "pg_restore_serviceindex.sh",
+                "--input",
+                str(dump),
+                "--inspect",
+            )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("unapproved or malformed psql meta-commands", result.stderr)
+
+    def test_restore_allows_backslashes_inside_copy_data(self):
+        sql = (
+            "\\restrict TestKey123\n"
+            "CREATE SCHEMA serviceindex_django;\n"
+            "CREATE TABLE serviceindex_django.copy_data (value text);\n"
+            "COPY serviceindex_django.copy_data (value) FROM stdin;\n"
+            "\\N\n"
+            "\\g | copy-data-not-a-command\n"
+            "\\.\n"
+            "\\unrestrict TestKey123\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            dump = Path(directory) / "safe.sql"
+            dump.write_text(sql, encoding="utf-8")
+            result = self.run_tool(
+                "pg_restore_serviceindex.sh",
+                "--input",
+                str(dump),
+                "--inspect",
+            )
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_restore_rejects_other_schema_ddl(self):
         sql = (
+            "\\restrict TestKey123\n"
             "CREATE SCHEMA serviceindex_django;\n"
             "DROP SCHEMA public CASCADE;\n"
+            "\\unrestrict TestKey123\n"
         )
         with tempfile.TemporaryDirectory() as directory:
             dump = Path(directory) / "unsafe.sql"

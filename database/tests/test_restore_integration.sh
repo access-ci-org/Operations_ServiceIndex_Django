@@ -42,7 +42,7 @@ cleanup() {
         esac
         if [[ "$exit_code" -ne 0 ]]; then
             echo "Integration test failed; operational log tails follow:" >&2
-            for log_file in initdb.log postgres.log inspect.log dry-run.log restore.log failure.log; do
+            for log_file in initdb.log postgres.log inspect.log dry-run.log blocked-meta-command.log restore.log failure.log; do
                 if [[ -s "$TEST_ROOT/$log_file" ]]; then
                     echo "--- ${log_file} ---" >&2
                     tail -n 20 "$TEST_ROOT/$log_file" >&2
@@ -157,6 +157,34 @@ RESTORE_SCRIPT="$ROOT_DIR/database/pg_restore_serviceindex.sh"
 "$RESTORE_SCRIPT" --input "$INPUT" --target-db serviceindex2 --dry-run \
     >"$TEST_ROOT/dry-run.log"
 
+cat >"$TEST_ROOT/blocked_meta_command.sql" <<SQL
+\restrict TestKey123
+CREATE SCHEMA serviceindex_django;
+\unrestrict TestKey123
+SELECT current_database() \g | /usr/bin/touch $TEST_ROOT/meta-command-executed
+SQL
+chmod 600 "$TEST_ROOT/blocked_meta_command.sql"
+set +e
+"$RESTORE_SCRIPT" --input "$TEST_ROOT/blocked_meta_command.sql" \
+    --target-db serviceindex2 --no-verify --execute --confirm-target serviceindex2 \
+    >"$TEST_ROOT/blocked-meta-command.log" 2>&1
+blocked_status=$?
+set -e
+[[ "$blocked_status" -ne 0 ]] || {
+    echo "Unsafe psql meta-command artifact unexpectedly passed validation" >&2
+    exit 1
+}
+grep -q 'unapproved or malformed psql meta-commands' \
+    "$TEST_ROOT/blocked-meta-command.log" || {
+    echo "Unsafe psql meta-command artifact failed for the wrong reason" >&2
+    exit 1
+}
+[[ ! -e "$TEST_ROOT/meta-command-executed" ]] || {
+    echo "Unsafe psql meta-command executed on the local host" >&2
+    exit 1
+}
+echo "PASS: execute mode blocked an attempted local psql command before connection"
+
 application_marker="$("$POSTGRES_BIN/psql" -X -h "$TEST_ROOT/socket" \
     -p "$LOCAL_PG_PORT" -U serviceindex_django -d serviceindex2 -t -A \
     -v ON_ERROR_STOP=1 -c 'SELECT count(*) FROM serviceindex_django.pre_restore_marker;')"
@@ -187,9 +215,11 @@ IFS='|' read -r unrelated_count old_marker_absent table_count schema_owner creat
 echo "PASS: restore loaded ${table_count} application tables and preserved the unrelated schema"
 
 cat >"$TEST_ROOT/intentional_failure.sql" <<'SQL'
+\restrict TestKey123
 CREATE SCHEMA serviceindex_django;
 CREATE TABLE serviceindex_django.rollback_probe (id integer);
 SELECT serviceindex_intentional_missing_function();
+\unrestrict TestKey123
 SQL
 chmod 600 "$TEST_ROOT/intentional_failure.sql"
 set +e

@@ -130,7 +130,9 @@ The restore:
 1. Unconditionally refuses serviceindex1 as a target and also refuses matching
    source and target names.
 2. Rejects empty or unrecognized artifacts.
-3. Rejects database DDL and psql reconnect commands in plain SQL.
+3. Requires a matching alphanumeric psql `\restrict`/`\unrestrict` envelope
+   in plain SQL, permits backslashes only inside COPY data, and rejects every
+   other psql meta-command.
 4. Requires serviceindex_django in the artifact.
 5. Requires an existing target owned by the maintenance role.
 6. Refuses a target with other active client connections.
