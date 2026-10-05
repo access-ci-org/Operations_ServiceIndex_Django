@@ -39,12 +39,21 @@ Generated artifacts go under database/dump/, which is ignored by Git.
 - S3 retrieval uses the selected AWS profile. Deployed hosts use newbackup.
 - Dump and verification use application credentials from APP_CONFIG. A deployed
   release auto-discovers ../../conf/serviceindex.conf.
-- Restore loads data with the application credentials. Target preparation uses
-  the database owner through libpq password lookup, normally
-  /home/software/.pgpass with mode 0600.
+- Restore loads data as serviceindex_django with the application credentials.
+  Target preparation authenticates directly as serviceindex_owner. The PostgreSQL
+  commands use libpq, which automatically reads PGPASSFILE when set and otherwise
+  reads $HOME/.pgpass. For the deployed software user this normally resolves to
+  /home/software/.pgpass and must have mode 0600. “libpq password lookup” describes
+  this automatic behavior; it is not a separate command. The current script does
+  not authenticate as opsdba and then SET ROLE serviceindex_owner.
 - Passwords must never appear in commands or logs.
 
 ## Retrieve serviceindex1 and restore it to serviceindex2
+
+Follow these steps in order. A failed inspection, credential check, target backup,
+or dry run is a stopping condition; do not skip forward to execute mode.
+
+### 1. Enter the active release
 
 Run from the active release as the software operating-system user:
 
@@ -52,6 +61,55 @@ Run from the active release as the software operating-system user:
 sudo -iu software
 cd /soft/serviceindex-1.0/PROD
 ~~~
+
+The database helper scripts below automatically discover
+`/soft/serviceindex-1.0/conf/serviceindex.conf`; they do not require an
+`APP_CONFIG` export. Direct Django management commands do require the config.
+Pass it for one command without leaving it exported in the shell:
+
+~~~bash
+APP_CONFIG=/soft/serviceindex-1.0/conf/serviceindex.conf \
+  uv run python Operations_ServiceIndex_Django/manage.py shell
+~~~
+
+`manage.py shell` opens a Python console. Use `manage.py dbshell` for SQL against
+the configured application database, normally serviceindex1 as
+serviceindex_django. Continue to use direct `psql` with an explicit host,
+database, and role for serviceindex_owner access to serviceindex2.
+
+Other Django management commands use the same pattern. For example, inspect the
+deployed application or preview its migration state without changing it:
+
+~~~bash
+APP_CONFIG=/soft/serviceindex-1.0/conf/serviceindex.conf \
+  uv run python Operations_ServiceIndex_Django/manage.py check
+
+APP_CONFIG=/soft/serviceindex-1.0/conf/serviceindex.conf \
+  uv run python Operations_ServiceIndex_Django/manage.py showmigrations --plan
+~~~
+
+Commands such as `createsuperuser` write to the configured application database
+and require explicit authorization:
+
+~~~bash
+APP_CONFIG=/soft/serviceindex-1.0/conf/serviceindex.conf \
+  uv run python Operations_ServiceIndex_Django/manage.py createsuperuser
+~~~
+
+Do not generate or apply migrations as an ad hoc database-recovery step.
+`makemigrations` changes application source, and `migrate` changes the database
+schema; both require their normal review and deployment authorization.
+
+Confirm that psql, pg_dump, and pg_restore are from the same supported, patched
+PostgreSQL major release before handling an artifact:
+
+~~~bash
+psql --version
+pg_dump --version
+pg_restore --version
+~~~
+
+### 2. Select and retrieve the source backup
 
 List recent production backups:
 
@@ -82,6 +140,8 @@ DUMP="database/dump/django.serviceindex1.dump.EPOCH.sql"
 
 The suffix may instead be .dump; use the path actually printed.
 
+### 3. Inspect the source artifact offline
+
 Inspect the artifact offline first:
 
 ~~~bash
@@ -94,7 +154,99 @@ Inspection validates the local artifact, identifies its format, and prints its
 SHA-256 digest without connecting to PostgreSQL. Confirm source serviceindex1,
 target serviceindex2, schema serviceindex_django, and the expected digest and format.
 
-Next, run the live read-only preflight against serviceindex2:
+Record the resolved dump path and SHA-256 digest in the operator notes for the
+current run. Do not put a dump, password, or application configuration in Git.
+
+### 4. Back up the current serviceindex2 schema
+
+Preview a logical backup of the target before changing it:
+
+~~~bash
+./database/pg_dump_serviceindex.sh \
+  --source-db serviceindex2 \
+  --dry-run
+~~~
+
+Confirm database serviceindex2, schema serviceindex_django, and the expected RDS
+host. Then create the backup:
+
+~~~bash
+./database/pg_dump_serviceindex.sh \
+  --source-db serviceindex2
+~~~
+
+Do not continue unless the command ends with `Dump complete and validated`.
+Record the exact output path and its digest:
+
+~~~bash
+sha256sum database/dump/serviceindex2_full_TIMESTAMP.dump
+~~~
+
+The default target backup is a PostgreSQL custom archive validated with
+`pg_restore --list`. It is local only and is not an RDS snapshot or S3 upload.
+The current custom-archive restore path uses `pg_restore --clean`, which drops
+only objects represented in the archive; it does not guarantee removal of extra
+target objects. Treat rollback from this artifact as a separate, reviewed
+operation until full schema replacement for custom archives is implemented and
+tested. Do not assume the forward synchronization command is a rollback command.
+
+### 5. Verify target ownership and credentials
+
+The two database roles have different responsibilities:
+
+- serviceindex_django reads and writes application data, owns the application
+  schema, and performs the actual load. Its password comes from APP_CONFIG.
+- serviceindex_owner owns serviceindex2, performs the privileged preflight, and
+  temporarily grants and revokes CREATE when necessary. Its password comes from
+  the software user's libpq password file.
+
+Check the password-file metadata without displaying any passwords:
+
+~~~bash
+stat -c '%U %G %a %n' "$HOME/.pgpass"
+awk -F: 'NF >= 5 {print $1 ":" $2 ":" $3 ":" $4 ":<redacted>"}' \
+  "$HOME/.pgpass"
+~~~
+
+The file must be owned by software with mode 0600. It must contain a matching
+entry for the owner login; `PASSWORD` below is a placeholder and must never be
+copied literally or placed in shell history:
+
+~~~text
+RDS_HOST:5432:serviceindex2:serviceindex_owner:PASSWORD
+~~~
+
+Test direct owner authentication without allowing an interactive fallback:
+
+~~~bash
+psql -X \
+  -h RDS_HOST \
+  -p 5432 \
+  -U serviceindex_owner \
+  -d serviceindex2 \
+  -w \
+  -Atc 'SELECT current_database(), current_user;'
+~~~
+
+The expected result is `serviceindex2|serviceindex_owner`. `no password supplied`
+means no password-file entry matched. `password authentication failed` means an
+entry matched but its credential was invalid or incorrectly escaped. In .pgpass,
+escape a colon in the password as `\:` and a backslash as `\\`; do not quote the
+password. Obtain or reset credentials only through an authorized process.
+
+PostgreSQL may report that opsdba is a member of serviceindex_owner, but that does
+not satisfy the current implementation. The script does not issue SET ROLE and
+requires direct authentication as the database owner. Supporting opsdba plus role
+assumption requires a separate code and test change.
+
+### 6. Stop target users and run the live dry run
+
+The application using serviceindex2 must be stopped and its other clients must be
+disconnected through the authorized operational process before the dry run. The
+preflight refuses any other active client connection. These scripts do not stop or
+restart services.
+
+Run the live read-only preflight against serviceindex2:
 
 ~~~bash
 ./database/pg_restore_serviceindex.sh \
@@ -106,15 +258,16 @@ Dry run authenticates both database roles and checks target ownership, active
 connections, schema ownership, and required privileges. It performs no GRANT,
 DROP, or restore command.
 
-Before a real restore, an authorized operator must:
+Do not proceed unless it reports `Live read-only preflight passed` followed by
+`Dry run passed`. Before execute mode, an authorized operator must confirm:
 
 1. Confirm serviceindex2 is the intended non-production target.
 2. Confirm the maintenance role owns serviceindex2.
 3. Confirm the software user's libpq password file covers that role and target.
 4. Stop the application using serviceindex2 and disconnect other clients.
-5. Back up serviceindex2 first if its current contents may be needed.
+5. Confirm the validated serviceindex2 backup path and digest were recorded.
 
-Stopping or restarting an application is not performed by these scripts.
+### 7. Execute the synchronization
 
 Restore and automatically verify:
 
@@ -124,6 +277,9 @@ Restore and automatically verify:
   --execute \
   --confirm-target serviceindex2
 ~~~
+
+Do not substitute serviceindex1 in `--confirm-target`. Save the complete command
+output with the operator record, excluding secrets.
 
 The restore:
 
@@ -144,8 +300,9 @@ The restore:
 
 Do not manually empty or drop serviceindex2 first. Plain-SQL restoration drops
 serviceindex_django inside the restore transaction before loading the dump.
-Custom-format restoration uses pg_restore clean mode. Database ownership,
-encoding, database-level grants, and unrelated schemas are preserved.
+Custom-format restoration uses pg_restore clean mode subject to the rollback
+caveat in step 4. Database ownership, encoding, database-level grants, and
+unrelated schemas are preserved.
 
 Plain-SQL and custom-format restore failures roll back the schema replacement
 transaction. Connection loss at transaction commit leaves the final database
@@ -157,6 +314,35 @@ operator must inspect the database privilege and revoke it if it was temporary.
 
 Migration execution is not part of restoration. Review migration state against
 the deployed application and obtain separate authorization before applying one.
+
+### 8. Verify before returning the target to service
+
+Successful execute mode runs verify_db.sh automatically. Run an explicit read-only
+verification as well when recording the completed operation:
+
+~~~bash
+./database/verify_db.sh \
+  --target-db serviceindex2
+~~~
+
+Review the structural checks and row counts. Do not restart or redirect an
+application to serviceindex2 until verification passes and the authorized operator
+has reviewed the result.
+
+### Resume checklist
+
+When pausing an operation, record these non-secret values outside the repository:
+
+1. Active release path.
+2. Retrieved source artifact path, format, and SHA-256 digest.
+3. Validated serviceindex2 safety-backup path and SHA-256 digest.
+4. Last completed numbered step and its exit status.
+5. Whether the target application is running or stopped.
+6. Any failed credential or connection check, without its password.
+
+After resuming, repeat offline inspection, direct owner authentication, and the
+live dry run even if they passed in an earlier shell session. Never reuse an old
+shell variable without resetting it to the recorded artifact path.
 
 ## Local pre-host integration test
 
