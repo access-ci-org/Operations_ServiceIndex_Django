@@ -144,3 +144,6 @@ operations-app.access-ci.org.pub
 Pipfile
 Pipfile.lock
 API_KEY
+zz_production.json
+production (1).json
+production.json
