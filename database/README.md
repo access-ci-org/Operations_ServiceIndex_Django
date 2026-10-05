@@ -234,6 +234,46 @@ entry matched but its credential was invalid or incorrectly escaped. In .pgpass,
 escape a colon in the password as `\:` and a backslash as `\\`; do not quote the
 password. Obtain or reset credentials only through an authorized process.
 
+If an authorized password reset is required, connect as the administrative role
+with an interactive prompt. Replace `RDS_HOST` with the same hostname shown by
+the restore script:
+
+~~~bash
+env -u PGPASSWORD PGPASSFILE=/dev/null psql -X \
+  -h RDS_HOST \
+  -p 5432 \
+  -U opsdba \
+  -d postgres \
+  -W
+~~~
+
+At the `psql` prompt, reset the cluster-wide role password and then exit:
+
+~~~text
+\password serviceindex_owner
+\q
+~~~
+
+`\password` prompts for the new value twice without putting it in the command or
+SQL history. Never place the plaintext password in an `ALTER ROLE` command. Test
+the new value independently of `.pgpass` before editing the password file:
+
+~~~bash
+env -u PGPASSWORD PGPASSFILE=/dev/null psql -X \
+  -h RDS_HOST \
+  -p 5432 \
+  -U serviceindex_owner \
+  -d serviceindex2 \
+  -W \
+  -Atc 'SELECT current_database(), current_user;'
+~~~
+
+The expected result is `serviceindex2|serviceindex_owner`. Store the rotated
+credential in the approved secret system, update the matching `.pgpass` entry
+with a secure editor, run `chmod 600 "$HOME/.pgpass"`, and repeat the earlier
+`-w` authentication test. One role password applies to every database in the
+cluster; `.pgpass` still requires a separate matching entry for each database.
+
 PostgreSQL may report that opsdba is a member of serviceindex_owner, but that does
 not satisfy the current implementation. The script does not issue SET ROLE and
 requires direct authentication as the database owner. Supporting opsdba plus role
@@ -328,6 +368,49 @@ verification as well when recording the completed operation:
 Review the structural checks and row counts. Do not restart or redirect an
 application to serviceindex2 until verification passes and the authorized operator
 has reviewed the result.
+
+### 9. Close the synchronization session
+
+Immediately after execute mode returns, preserve and check its exit status:
+
+~~~bash
+RESTORE_STATUS=$?
+if [[ "$RESTORE_STATUS" -ne 0 ]]; then
+  echo "Restore or verification failed with status ${RESTORE_STATUS}" >&2
+  exit "$RESTORE_STATUS"
+fi
+~~~
+
+A successful run ends with `Service Index database verification completed
+successfully`, a final `REVOKE`, and status 0. The final `REVOKE` removes any
+temporary CREATE privilege granted to serviceindex_django. An optional read-only
+confirmation is:
+
+~~~bash
+env -u PGPASSWORD psql -X \
+  -h RDS_HOST \
+  -p 5432 \
+  -U serviceindex_owner \
+  -d serviceindex2 \
+  -w \
+  -Atc "SELECT has_database_privilege('serviceindex_django', current_database(), 'CREATE');"
+~~~
+
+The expected result is `f`. Record the source artifact path and SHA-256, the
+serviceindex2 safety-backup path and SHA-256, the verification result, and the
+credential-rotation event without recording any password. Keep the source dump
+and target backup according to the approved retention policy; do not delete them
+as ad hoc cleanup and do not repeat a successful restore.
+
+Clear variables set for the session, then leave the software-user shell:
+
+~~~bash
+unset DUMP APP_CONFIG PGPASSWORD PGPASSFILE PGHOST PGPORT PGUSER PGDATABASE
+exit
+~~~
+
+Returning an application to service, changing its database target, or deleting
+recovery artifacts remains a separate authorized operation.
 
 ### Resume checklist
 
