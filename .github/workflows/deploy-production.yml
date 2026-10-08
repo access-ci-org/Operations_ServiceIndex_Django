@@ -1,8 +1,8 @@
 name: Deploy to Production
 
 on:
-  # Production is reachable only from the release-promotion workflow after the
-  # identical tag and commit have passed beta deployment and smoke tests.
+  # The normal path is called after beta passes. A manual dispatch of the exact
+  # release tag is reserved for a reviewed migration retry of that same tag.
   workflow_call:
     inputs:
       version_tag:
@@ -11,9 +11,31 @@ on:
       commit_sha:
         required: true
         type: string
+      run_migrations:
+        required: true
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: Existing immutable vX.Y.Z release tag that passed beta
+        required: true
+        type: string
+      run_migrations:
+        description: Authorize database migrations for this production retry
+        required: true
+        type: boolean
+        default: false
 
 permissions:
+  actions: read
   contents: read
+
+# A manually dispatched production retry shares the release-train lock with
+# deploy-beta. Reusable calls use a run-specific group because the caller already
+# owns the release-train lock.
+concurrency:
+  group: ${{ github.event_name == 'workflow_dispatch' && 'service-index-release-promotion' || format('service-index-production-call-{0}', github.run_id) }}
+  cancel-in-progress: false
 
 jobs:
   validate-tag:
@@ -22,35 +44,67 @@ jobs:
     outputs:
       tag: ${{ steps.validate.outputs.tag }}
       commit_sha: ${{ steps.validate.outputs.commit_sha }}
-      
+      run_migrations: ${{ steps.validate.outputs.run_migrations }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
         with:
           repository: access-ci-org/Operations_ServiceIndex_Django
-          ref: ${{ inputs.commit_sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.version_tag || inputs.commit_sha }}
           fetch-depth: 0  # Fetch all history and tags
+          persist-credentials: false
 
-      - name: Validate tag exists
+      - name: Validate tag and caller
         id: validate
         env:
           TAG: ${{ inputs.version_tag }}
-          EXPECTED_COMMIT_SHA: ${{ inputs.commit_sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          SUPPLIED_COMMIT_SHA: ${{ inputs.commit_sha }}
+          REQUESTED_RUN_MIGRATIONS: ${{ inputs.run_migrations }}
+          SELECTED_REF: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
         run: |
           set -euo pipefail
 
-          EXPECTED_WORKFLOW_REF="${GITHUB_REPOSITORY}/.github/workflows/deploy-beta.yml@${GITHUB_REF}"
-          if [[ "$GITHUB_WORKFLOW_REF" != "$EXPECTED_WORKFLOW_REF" ]]; then
-            echo "Production may only be called by deploy-beta.yml at the same release ref."
-            echo "Expected caller: $EXPECTED_WORKFLOW_REF"
+          CHECKED_OUT_COMMIT_SHA=$(git rev-parse 'HEAD^{commit}')
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            if [[ "$REF_TYPE" != "tag" || "$SELECTED_REF" != "$TAG" ]]; then
+              echo "Manual production retries must be dispatched from release tag '$TAG'."
+              echo "Selected ref: $SELECTED_REF ($REF_TYPE); requested tag: $TAG"
+              exit 1
+            fi
+            EXPECTED_COMMIT_SHA="$CHECKED_OUT_COMMIT_SHA"
+          else
+            EXPECTED_WORKFLOW_REF="${GITHUB_REPOSITORY}/.github/workflows/deploy-beta.yml@${GITHUB_REF}"
+            if [[ "$GITHUB_WORKFLOW_REF" != "$EXPECTED_WORKFLOW_REF" ]]; then
+              echo "Production may only be called by deploy-beta.yml at the same release ref."
+              echo "Expected caller: $EXPECTED_WORKFLOW_REF"
+              exit 1
+            fi
+            EXPECTED_COMMIT_SHA="$SUPPLIED_COMMIT_SHA"
+          fi
+
+          if [[ -z "$EXPECTED_COMMIT_SHA" || "$CHECKED_OUT_COMMIT_SHA" != "$EXPECTED_COMMIT_SHA" ]]; then
+            echo "Checked-out commit $CHECKED_OUT_COMMIT_SHA does not match expected commit $EXPECTED_COMMIT_SHA."
             exit 1
           fi
-          
+
+          RUN_MIGRATIONS="$REQUESTED_RUN_MIGRATIONS"
+          if [[ "$RUN_MIGRATIONS" != "true" && "$RUN_MIGRATIONS" != "false" ]]; then
+            echo "run_migrations must resolve to lowercase true or false."
+            exit 1
+          fi
+          if [[ "$EVENT_NAME" != "workflow_dispatch" && "$RUN_MIGRATIONS" != "false" ]]; then
+            echo "Only a manual production dispatch may authorize migrations."
+            exit 1
+          fi
+
           if ! git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
             echo "Tag '$TAG' does not exist."
             exit 1
           fi
-          
+
           if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Tag '$TAG' must use the vX.Y.Z release format."
             exit 1
@@ -73,18 +127,88 @@ jobs:
           {
             echo "tag=$TAG"
             echo "commit_sha=$EXPECTED_COMMIT_SHA"
+            echo "run_migrations=$RUN_MIGRATIONS"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Verify this release passed beta
+        uses: actions/github-script@v7
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          TAG: ${{ steps.validate.outputs.tag }}
+          COMMIT_SHA: ${{ steps.validate.outputs.commit_sha }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            let runs;
+            if (process.env.EVENT_NAME === 'workflow_dispatch') {
+              runs = await github.paginate(
+                github.rest.actions.listWorkflowRuns,
+                {
+                  owner,
+                  repo,
+                  workflow_id: 'deploy-beta.yml',
+                  head_sha: process.env.COMMIT_SHA,
+                  per_page: 100,
+                },
+              );
+            } else {
+              const currentRun = await github.rest.actions.getWorkflowRun({
+                owner,
+                repo,
+                run_id: context.runId,
+              });
+              runs = [currentRun.data];
+            }
+
+            for (const run of runs) {
+              if (
+                run.head_sha !== process.env.COMMIT_SHA ||
+                run.head_branch !== process.env.TAG
+              ) {
+                continue;
+              }
+
+              const jobs = await github.paginate(
+                github.rest.actions.listJobsForWorkflowRun,
+                { owner, repo, run_id: run.id, per_page: 100 },
+              );
+              const betaPassed = jobs.some(
+                (job) =>
+                  job.name === 'Beta Post-Deployment Smoke Tests' &&
+                  job.conclusion === 'success',
+              );
+
+              if (betaPassed) {
+                core.info(`Verified beta smoke tests in run ${run.id}.`);
+                await core.summary
+                  .addHeading('Beta verification', 2)
+                  .addLink(`Beta run ${run.id}`, run.html_url)
+                  .write();
+                return;
+              }
+            }
+
+            core.setFailed(
+              `No successful beta smoke-test run was found for ${process.env.TAG} at ${process.env.COMMIT_SHA}.`,
+            );
 
       - name: Get tag info
         env:
           TAG: ${{ steps.validate.outputs.tag }}
+          COMMIT_SHA: ${{ steps.validate.outputs.commit_sha }}
+          RUN_MIGRATIONS: ${{ steps.validate.outputs.run_migrations }}
         run: |
-          echo "## Release Information" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Tag**: $TAG" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Commit Details" >> $GITHUB_STEP_SUMMARY
-          git show --no-patch --format="- **Commit**: %H%n- **Author**: %an (%ae)%n- **Date**: %ai%n- **Message**: %s" "$TAG" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Release Information"
+            echo
+            echo "- **Tag:** $TAG"
+            echo "- **Validated commit:** $COMMIT_SHA"
+            echo "- **Actor:** $GITHUB_ACTOR"
+            echo "- **Run migrations:** $RUN_MIGRATIONS"
+            git show --no-patch \
+              --format='- **Commit:** %H%n- **Author:** %an (%ae)%n- **Date:** %ai%n- **Message:** %s' \
+              "$TAG"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   create-release:
     name: Create GitHub Release
@@ -160,11 +284,17 @@ jobs:
     
     steps:
       - name: Deployment initiated
+        env:
+          APP_REF: ${{ needs.validate-tag.outputs.tag }}
+          COMMIT_SHA: ${{ needs.validate-tag.outputs.commit_sha }}
+          RUN_MIGRATIONS: ${{ needs.validate-tag.outputs.run_migrations }}
         run: |
-          echo "🚀 Starting production deployment..."
-          echo "Version: ${{ needs.validate-tag.outputs.tag }}"
-          echo "Initiated by: ${{ github.actor }}"
-          echo "Run ID: ${{ github.run_id }}"
+          echo "Starting production deployment"
+          echo "Ref: $APP_REF"
+          echo "Commit: $COMMIT_SHA"
+          echo "Run migrations: $RUN_MIGRATIONS"
+          echo "Initiated by: $GITHUB_ACTOR"
+          echo "Run ID: $GITHUB_RUN_ID"
 
       - name: Checkout Django Application at Tag
         uses: actions/checkout@v5
@@ -198,42 +328,18 @@ jobs:
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
           APP_TAG: ${{ needs.validate-tag.outputs.tag }}
           COMMIT_SHA: ${{ needs.validate-tag.outputs.commit_sha }}
+          RUN_MIGRATIONS: ${{ needs.validate-tag.outputs.run_migrations }}
         run: |
-          echo "Deploying version $APP_TAG at $COMMIT_SHA to production..."
+          echo "Deploying $APP_TAG at $COMMIT_SHA to production (run_migrations=$RUN_MIGRATIONS)"
           
           ansible-playbook \
             -i hosts \
             application_playbook.yml \
             --vault-password-file=<(printf '%s' "$ANSIBLE_VAULT_PASSWORD") \
             --limit=service-index.operations.access-ci.org \
-            --extra-vars "app_tag=$APP_TAG git_version=$COMMIT_SHA" \
+            --extra-vars "app_tag=$APP_TAG git_version=$COMMIT_SHA run_migrations=$RUN_MIGRATIONS" \
             -vv \
             || { echo "❌ Production deployment failed!"; exit 1; }
-
-      - name: Run database migrations
-        run: |
-          echo "Running database migrations..."
-          
-          ssh ubuntu@service-index.operations.access-ci.org \
-            "cd /soft/serviceindex-1.0 && \
-             sudo -u software ./sbin/manage.prod.sh migrate --noinput"
-
-      - name: Collect static files
-        run: |
-          echo "Collecting static files..."
-          
-          ssh ubuntu@service-index.operations.access-ci.org \
-            "cd /soft/serviceindex-1.0 && \
-             sudo -u software ./sbin/manage.prod.sh collectstatic --noinput"
-
-      - name: Restart application service
-        run: |
-          echo "Restarting application service..."
-          
-          ssh ubuntu@service-index.operations.access-ci.org \
-            "sudo systemctl restart serviceindex.service && \
-             sleep 5 && \
-             sudo systemctl status serviceindex.service"
 
       - name: Verify deployment
         id: verify
@@ -269,6 +375,11 @@ jobs:
 
       - name: Deployment summary
         if: always()
+        env:
+          APP_REF: ${{ needs.validate-tag.outputs.tag }}
+          COMMIT_SHA: ${{ needs.validate-tag.outputs.commit_sha }}
+          RUN_MIGRATIONS: ${{ needs.validate-tag.outputs.run_migrations }}
+          VERIFICATION: ${{ steps.verify.outputs.status }}
         run: |
           echo "## 🚀 Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -276,16 +387,18 @@ jobs:
           echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| **Environment** | Production |" >> $GITHUB_STEP_SUMMARY
           echo "| **Target Host** | service-index.operations.access-ci.org |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Version** | ${{ needs.validate-tag.outputs.tag }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Deployed By** | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Ref** | $APP_REF |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | $COMMIT_SHA |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Run migrations** | $RUN_MIGRATIONS |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Deployed By** | $GITHUB_ACTOR |" >> $GITHUB_STEP_SUMMARY
           echo "| **Deployment Status** | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Verification** | ${{ steps.verify.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Verification** | $VERIFICATION |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### URL" >> $GITHUB_STEP_SUMMARY
           echo "https://service-index.operations.access-ci.org" >> $GITHUB_STEP_SUMMARY
 
   post-deployment-tests:
-    name: Post-Deployment Smoke Tests
+    name: Production Post-Deployment Smoke Tests
     needs: [validate-tag, deploy-production]
     runs-on: ubuntu-latest
     
@@ -331,16 +444,33 @@ jobs:
       - name: Rollback instructions
         env:
           APP_TAG: ${{ needs.validate-tag.outputs.tag }}
+          RUN_MIGRATIONS: ${{ needs.validate-tag.outputs.run_migrations }}
         run: |
           {
             echo "## Production deployment failed"
             echo
             echo "Release $APP_TAG did not complete successfully."
-            echo
-            echo "1. Review the failed job and the timestamped pre-deployment backup recorded above."
-            echo "2. If the failure is safely retryable, re-run the failed jobs from this promotion run; production approval still applies."
-            echo "3. If rollback is required, follow the authorized production rollback runbook and select the actual previous known-good version."
-            echo "4. Do not move or reuse release tag $APP_TAG."
+            if [[ "$RUN_MIGRATIONS" == "false" ]]; then
+              echo
+              echo "1. Review the failed job and timestamped pre-deployment backup."
+              echo "2. Confirm whether the Ansible log shows that the default-false migration check stopped because migrations are pending."
+              echo "3. Review the reported migration plan and confirm the separately approved database recovery process."
+              echo
+              echo "Only when all three conditions are satisfied, start a new run for this exact tag:"
+              echo
+              echo '```bash'
+              echo "gh workflow run deploy-production.yml --repo access-ci-org/Operations_ServiceIndex_Django --ref $APP_TAG --field version_tag=$APP_TAG --field run_migrations=true"
+              echo '```'
+              echo
+              echo "The new run still requires approval through the protected production environment."
+              echo "Do not use this command for configuration, connectivity, backup, or other playbook failures. Do not use Re-run failed jobs because it preserves run_migrations=false."
+              echo "See .github/workflows/README.md for the full guarded procedure."
+            else
+              echo
+              echo "This was not a default-false deployment failure. Do not launch another migration-enabled retry from this summary."
+              echo "Review whether schema changes began and follow the authorized production recovery or rollback procedure."
+            fi
+            echo "Do not move or reuse release tag $APP_TAG."
           } >> "$GITHUB_STEP_SUMMARY"
 
       # Optional: Slack notification

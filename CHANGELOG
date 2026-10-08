@@ -1,3 +1,6 @@
+v2.8.3 2026-10-08 jlambertson
+- switching migrations gate to application.yml from ci deploy-beta/production in order to make manual and automatied deploys more uniform
+
 v2.8.2 2026-10-07 jlambertson
 - tweaking github actions workflow with safer beta deploy requirement
 
