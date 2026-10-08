@@ -40,7 +40,9 @@ class SignupPolicyTests(SimpleTestCase):
         )
 
     def test_other_social_signup_policies_are_closed(self):
-        sociallogin = SimpleNamespace(account=SimpleNamespace(provider="other-provider"))
+        sociallogin = SimpleNamespace(
+            account=SimpleNamespace(provider="other-provider")
+        )
         self.assertFalse(
             get_socialaccount_adapter(self.request).is_open_for_signup(
                 self.request, sociallogin
