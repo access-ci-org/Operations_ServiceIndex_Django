@@ -1,33 +1,33 @@
-from django.core.serializers import serialize
-from django.shortcuts import render, redirect
-from django.forms.formsets import formset_factory
-from django.forms import modelformset_factory
-from django import http
-from django.urls import reverse, reverse_lazy
-from django.template.loader import get_template
-from django.template import Context
-from django.utils import timezone
-
-from datetime import datetime, timedelta, time
-from zoneinfo import ZoneInfo
-
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.conf import settings
-from rest_framework.authentication import BasicAuthentication
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import BasePermission, IsAuthenticated
-
-from services.models import *
-from services.serializers import *
-import services.signals
-
-from .models import Misc_urls
-
 import collections
 import json
 import logging
+from datetime import datetime, time, timedelta
+from zoneinfo import ZoneInfo
+
+import services.signals
+from django import http
+from django.conf import settings
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.serializers import serialize
+from django.forms import modelformset_factory
+from django.forms.formsets import formset_factory
+from django.shortcuts import redirect, render
+from django.template import Context
+from django.template.loader import get_template
+from django.urls import reverse, reverse_lazy
+from django.utils import timezone
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.decorators import (api_view, authentication_classes,
+                                       permission_classes)
+from rest_framework.permissions import BasePermission, IsAuthenticated
+from services.models import *
+from services.serializers import *
+
+from .models import Misc_urls
+
 logger = logging.getLogger(__name__)
 import re
+
 
 def editors_check(user):
     return user.groups.filter(name='editors').exists()

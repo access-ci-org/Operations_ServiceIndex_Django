@@ -4,7 +4,8 @@ v2.8.3 2026-10-08 jlambertson
 v2.8.2 2026-10-07 jlambertson
 - tweaking github actions workflow with safer beta deploy requirement
 
-v2.8.1 2026-10-05 jlambertson
+v2.8.1 2026-10-05 jlambertsonor they are 'annotations'
+
 - updating database retrieval and restore steps
 
 v2.8.0 2026-09-29 jlambertson

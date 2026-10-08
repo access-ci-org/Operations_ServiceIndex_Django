@@ -3,7 +3,8 @@ from types import SimpleNamespace
 
 from allauth import app_settings as allauth_app_settings
 from allauth.account.adapter import get_adapter as get_account_adapter
-from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
+from allauth.socialaccount.adapter import \
+    get_adapter as get_socialaccount_adapter
 from django.contrib.auth.models import AnonymousUser, Group, User
 from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import NoReverseMatch, resolve, reverse
