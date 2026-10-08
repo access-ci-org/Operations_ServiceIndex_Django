@@ -3,8 +3,7 @@ from types import SimpleNamespace
 
 from allauth import app_settings as allauth_app_settings
 from allauth.account.adapter import get_adapter as get_account_adapter
-from allauth.socialaccount.adapter import \
-    get_adapter as get_socialaccount_adapter
+from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from django.contrib.auth.models import AnonymousUser, Group, User
 from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import NoReverseMatch, resolve, reverse
@@ -41,7 +40,9 @@ class SignupPolicyTests(SimpleTestCase):
         )
 
     def test_other_social_signup_policies_are_closed(self):
-        sociallogin = SimpleNamespace(account=SimpleNamespace(provider="other-provider"))
+        sociallogin = SimpleNamespace(
+            account=SimpleNamespace(provider="other-provider")
+        )
         self.assertFalse(
             get_socialaccount_adapter(self.request).is_open_for_signup(
                 self.request, sociallogin
